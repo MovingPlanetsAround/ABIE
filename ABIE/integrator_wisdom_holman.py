@@ -36,11 +36,11 @@ class WisdomHolman(Integrator):
             self.store_state()
             # self._t = to_time
         except CollisionException as e:
-            print e
+            print(e)
             self.store_collisions(self.libabie.get_collision_data())
             ret = 1
         except CloseEncounterException as e:
-            print e
+            print(e)
             self.store_close_encounters(self.libabie.get_close_encounter_data())
             ret = 2
         finally:
@@ -178,7 +178,7 @@ class WisdomHolman(Integrator):
             chi0 = chi
 
         if (abs(chi - chi0) > tol):
-            print "WARNING: failed to solver Kepler's equation, error = %23.15e\n" % abs(chi - chi0)
+            print("WARNING: failed to solver Kepler's equation, error = %23.15e\n" % abs(chi - chi0))
 
         # Compute f and g functions, together with their derivatives:
         f = 1 - chi ** 2 / r0 * c2

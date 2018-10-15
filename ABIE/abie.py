@@ -230,7 +230,7 @@ class ABIE(object):
     def integrator(self, name_of_integrator):
         if self.__integrators is None:
             self.__integrators = Integrator.load_integrators()
-        print('Setting the integrator to %s' % name_of_integrator)
+        print(('Setting the integrator to %s' % name_of_integrator))
         # populate the parameters to the integrator
         if name_of_integrator in self.__integrators:
             self.__integrator = getattr(self.__integrators[name_of_integrator], name_of_integrator)()

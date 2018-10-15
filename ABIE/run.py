@@ -61,7 +61,7 @@ sim.add(mass=0.000317894686564, a=0.7048, e=0.0069, i=1.57135832281, omega=5.550
 # sim.add(mass=5.02785431289e-08, a=0.00884615384615, e=0.01, i=0.50158147621, omega=0.0, Omega=3.14164501347, f=4.86470951828, name='moon', primary='planet')
 sim.add(mass=5.02785431289e-08, a=0.00884615384615, e=0.01, i=-0.0510158147621, omega=0.0, Omega=3.14164501347, f=4.86470951828, name='moon', primary='planet', radius=1.e-5)
 # sim.add(mass=5.02785431289e-08, a=0.005, e=0.01, i=-np.pi/2, omega=0.0, Omega=3.14164501347, f=4.86470951828, name='moon', primary='planet')
-print sim.particles
+print(sim.particles)
 # sys.exit(0)
 # sim.add(mass=)
 # The output file name. If not specified, the default is 'data.hdf5'

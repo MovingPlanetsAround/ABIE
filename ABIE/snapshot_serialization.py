@@ -18,11 +18,11 @@ if options.file is None:
     sys.exit(0)
 
 h5fns = glob.glob(options.file)
-print h5fns
+print(h5fns)
 if len(h5fns) > 0:
     for h5fn_id, h5fn in enumerate(h5fns):
         output_file_name = os.path.splitext(os.path.basename(h5fn))[0]
-        print('Processing %s' % h5fn)
+        print(('Processing %s' % h5fn))
         # temporarily copying the .unfinished file to /tmp
         new_file_path = os.path.join('/tmp', os.path.basename(h5fn))
         shutil.copyfile(h5fn, new_file_path)
@@ -56,7 +56,7 @@ if len(h5fns) > 0:
                         tmp_data = h5g[dset_name].value
                         lower_idx = cursor
                         higher_idx = cursor + tmp_data.shape[0]
-                        print lower_idx, higher_idx, cursor, step_len_vec[step_id]
+                        print(lower_idx, higher_idx, cursor, step_len_vec[step_id])
                         if dset_name not in dset_dict.keys():
                             # allocate memory
                             if tmp_data.ndim == 2:
@@ -66,8 +66,8 @@ if len(h5fns) > 0:
                         # append the data to the allocated big array
                         # dset_dict[dset_name][step_id*tmp_data.shape[0]:(step_id+1)*tmp_data.shape[0]][indices] = tmp_data
                         if tmp_data.ndim == 2:
-                            print dset_name, tmp_data.shape, dset_dict[dset_name][lower_idx:higher_idx].shape
-                            print indices.shape, vec_hash.shape
+                            print(dset_name, tmp_data.shape, dset_dict[dset_name][lower_idx:higher_idx].shape)
+                            print(indices.shape, vec_hash.shape)
                             dset_dict[dset_name][lower_idx:higher_idx, :][:, indices] = tmp_data
                         else:
                             # print dset_name, tmp_data.shape, dset_dict[dset_name][lower_idx:higher_idx].shape

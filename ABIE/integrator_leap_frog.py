@@ -15,7 +15,7 @@ class LeapFrog(Integrator):
         if self.__initialized is False:
             self.initialize()
             self.__initialized = True
-        print to_time, self.t_end
+        print(to_time, self.t_end)
         # Allocate dense output
         npts = int(np.floor((self.t_end - self.t_start) / self.h) + 1)
 
@@ -42,7 +42,7 @@ class LeapFrog(Integrator):
             self._t = t
             self.store_state()
             energy = self.calculate_energy()
-            print('t = %f, E/E0 = %g' % (self.t, np.abs(energy - energy_init) / energy_init))
+            print(('t = %f, E/E0 = %g' % (self.t, np.abs(energy - energy_init) / energy_init)))
             count += 1
         self.buf.close()
         return 0

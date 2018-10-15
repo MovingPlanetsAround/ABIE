@@ -26,7 +26,7 @@ class RungeKutta(Integrator):
         vel = self.particles.velocities.copy()
         self.libabie.set_state(pos, vel, self.particles.masses, self.particles.radii, self.particles.N, self.CONST_G)
         energy = self.calculate_energy()
-        print('t = %f, E/E0 = %g' % (self.t, np.abs(energy-energy_init)/energy_init))
+        print(('t = %f, E/E0 = %g' % (self.t, np.abs(energy-energy_init)/energy_init)))
         self.store_state()
         if to_time is not None:
             self.t_end = to_time
@@ -48,7 +48,7 @@ class RungeKutta(Integrator):
             self.particles.velocities = vel
             self.store_state()
             energy = self.calculate_energy()
-            print('t = %f, E/E0 = %g' % (self.t, np.abs(energy-energy_init)/energy_init))
+            print(('t = %f, E/E0 = %g' % (self.t, np.abs(energy-energy_init)/energy_init)))
         self.buf.close()
         return 0
 
@@ -124,7 +124,7 @@ class RungeKutta(Integrator):
             self._t = t
             self.store_state()
             energy = self.calculate_energy()
-            print('t = %f, E/E0 = %g' % (self.t, np.abs(energy - energy_init) / energy_init))
+            print(('t = %f, E/E0 = %g' % (self.t, np.abs(energy - energy_init) / energy_init)))
             count += 1
         self.buf.close()
         return 0

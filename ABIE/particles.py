@@ -1,6 +1,7 @@
 import numpy as np
 from particle import Particle
 from tools import Tools
+from six import string_types
 
 
 class Particles(object):
@@ -220,7 +221,7 @@ class Particles(object):
                     if (p.primary is not None) and (self.particles[p.primary] == pid2 or self.particles[p.primary] == p2.name):
                         p.primary = pid1
                 self.remove_particle(p2)
-                print("Merging particles inelastically: #%d + #%d ==> #%d" % (pid1, pid2, pid1))
+                print(("Merging particles inelastically: #%d + #%d ==> #%d" % (pid1, pid2, pid1)))
             else:
                 # merge into p2
                 p2.vel = (p1.mass * p1.vel + p2.mass * p2.vel) / (p1.mass + p2.mass)
@@ -234,19 +235,19 @@ class Particles(object):
                     if (p.primary is not None) and (self.particles[p.primary] == pid1 or self.particles[p.primary] == p1.name):
                         p.primary = pid2
                 self.remove_particle(p1)
-                print("Merging particles inelastically: #%d + #%d ==> #%d" % (pid2, pid1, pid2))
+                print(("Merging particles inelastically: #%d + #%d ==> #%d" % (pid2, pid1, pid2)))
             return 0
         else:
             return -1
 
 
     def __getitem__(self, item):
-        if isinstance(item, (int, long)):
+        if isinstance(item, int):
             if item < len(self.__particles):
                 return self.__particles[item]
             else:
                 raise ValueError('Particle #%d does not exist!' % item)
-        elif isinstance(item, basestring):
+        elif isinstance(item, string_types):
             if item in self.__names:
                 return self.__particles[self.__names[item]]
             else:
@@ -332,7 +333,7 @@ class Particles(object):
                 primary = self.get_center_of_mass(subset=self.primary)
             else:
                 primary = self.__getitem__(self.primary)
-        elif isinstance(primary, basestring):
+        elif isinstance(primary, string_types):
             if self.__getitem__(primary) is None:
                 raise ValueError('Object with the name %s not found!' % primary)
             else:

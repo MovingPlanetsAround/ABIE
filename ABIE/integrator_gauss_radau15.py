@@ -18,11 +18,11 @@ class GaussRadau15(Integrator):
             self.libabie.integrator_gr(self.t, to_time, 1.0)
 
         except CollisionException as e:
-            print e
+            print(e)
             self.handle_collisions(self.libabie.get_collision_data())
             ret = 1
         except CloseEncounterException as e:
-            print e
+            print(e)
             self.store_close_encounters(self.libabie.get_close_encounter_data())
             ret = 2
         finally:

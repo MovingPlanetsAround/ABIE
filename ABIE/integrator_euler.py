@@ -37,6 +37,6 @@ class Euler(Integrator):
             self._t = t
             self.store_state()
             energy = self.calculate_energy()
-            print('t = %f, E/E0 = %g' % (self.t, np.abs(energy - energy_init) / energy_init))
+            print(('t = %f, E/E0 = %g' % (self.t, np.abs(energy - energy_init) / energy_init)))
         self.buf.close()
         return 0

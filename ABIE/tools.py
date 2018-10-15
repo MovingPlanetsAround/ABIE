@@ -116,7 +116,7 @@ class Tools(object):
 
         if ell > 1.0:
             if 1.0 < ell <= ell + ell_epsilon:  ### still unity within numerical precision
-                print 'orbit is completely or nearly circular; in this case the LRL vector cannot be used to reliably obtain the argument of pericenter and true anomaly; the output values of the latter will be set to zero; output e will be e = 0'
+                print('orbit is completely or nearly circular; in this case the LRL vector cannot be used to reliably obtain the argument of pericenter and true anomaly; the output values of the latter will be set to zero; output e will be e = 0')
                 ell = 1.0
                 completely_or_nearly_circular = True
             else:  ### larger than unity within numerical precision
