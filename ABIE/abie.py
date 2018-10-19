@@ -305,6 +305,7 @@ class ABIE(object):
         except KeyboardInterrupt as e:
             print('Keyboard Interruption detected (Ctrl+C). Simulation stopped. Stopping the code...')
             self.stop()
+            sys.exit(0)
 
     def calculate_orbital_elements(self, primary=None):
         return self.integrator.calculate_orbital_elements(primary)
