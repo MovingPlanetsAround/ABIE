@@ -63,6 +63,21 @@ ecc = h5f['/Step#0/ecc'].value
 h5f.close()
 ```    
 
+Sometimes, it is more elegant to get rid of the `Step#n` data structure in the HDF5 file (i.e. combine `Step#0`, `Step#1`, ..., `Step#n` into flatten arrays. The `ABIE` package contains a tool to seralize the snapshot. For example, suppose that `ABIE` generates a data file `data.hdf5` contains the `Step#n` structure, the following command
+
+```
+python snapshot_serialization -f data.hdf5
+```
+will generate a flattened file called `data` (still in hdf5 format). In this case, the data can be accessed in this way:
+```python
+import h5py
+h5f = h5py.File('data.hdf5', 'r')
+semi = h5f['/semi'].value  # gets the semi-axis array for the entire simulation
+ecc = h5f['/ecc'].value    # gets the eccentricity array for the entire simulation
+...
+h5f.close()
+```    
+
 ### Integrators and Computational Acceleration
 
 `ABIE` implements all its integrators in both Python (for educational purpose) and in C (for performance). The currently supported integrators are:
