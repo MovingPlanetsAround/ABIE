@@ -10,7 +10,7 @@ extern "C" {
 
 }
 
-#define BLOCK_SIZE 1024
+#define BLOCK_SIZE 256
 #define SOFTENING 0.0f
 double4 *pos_dev;
 double3 *acc_dev;
@@ -23,12 +23,12 @@ void integrateNbodySystem(double4 *dPos, double3 *acc,
                            unsigned int numBodies,
                            int blockSize);
 
-__global__ void gpuforce(double4 *p, double G, int n, double4 *acc) {
+__global__ void gpuforce(double4 *p, double G, int n, double3 *acc) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i < n) {
         double Fx = 0.0f; double Fy = 0.0f; double Fz = 0.0f;
 
-#pragma unroll
+// #pragma unroll
             for (int j = 0; j < n; j++) {
                 double m = p[j].w;
                 if (i == j || m == 0) continue;
@@ -88,11 +88,14 @@ extern "C" {
         err = cudaMemcpy(pos_dev, pos_host, N*sizeof(double4), cudaMemcpyHostToDevice);
         if (err > 0) {printf("cudaMemcpy err = %d, host_to_dev\n", err); exit(0); }
 
-        // gpuforce<<<nBlocks, actual_block_size>>>(pos_dev, (double) G, (int) N, acc_dev);
+        int actual_block_size = BLOCK_SIZE;
+        int nBlocks = (N + actual_block_size - 1) / actual_block_size;
+
+        gpuforce<<<nBlocks, actual_block_size>>>(pos_dev, (double) G, (int) N, acc_dev);
         // int sharedMemSize = p * q * sizeof(float4); // 4 floats for pos
         // dim3 threads(p,q,1);
         // dim3 grid(numBodies/p, 1, 1);
-        integrateNbodySystem(pos_dev, acc_dev, G, N, BLOCK_SIZE);
+        // integrateNbodySystem(pos_dev, acc_dev, G, N, BLOCK_SIZE);
         //cudaforce<<<nBlocks, actual_block_size, shm_size>>>(pos_dev, (double) G, (int) N, acc_dev);
 
         err = cudaGetLastError();
