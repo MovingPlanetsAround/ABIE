@@ -31,7 +31,10 @@ if len(h5fns) > 0:
         with h5py.File(new_file_path, 'r') as h5f, h5py.File(output_file_name, 'w') as h5f_out:
             step_id_list = []
             step_len_vec = np.zeros(len(h5f), dtype=np.int)
-            vec_hash = h5f['/Step#0/hash'].value[0]  # the hash array of the first step (which contains all particles)
+            if len(h5f['/Step#0/hash']) > 0:
+                vec_hash = h5f['/Step#0/hash'].value[0]  # the hash array of the first step (which contains all particles)
+            else:
+                vec_hash = h5f['/Step#1/hash'].value[0]  # the hash array of the first step (which contains all particles)
             print('vec_hash', vec_hash.shape)
             dset_dict = dict()
             print('Mapping internal data structure...')
@@ -53,8 +56,7 @@ if len(h5fns) > 0:
                     if len(h5g['hash'].value)  == 0:
                         continue
                     indices = np.where(np.in1d(vec_hash, h5g['hash'].value))[0] # the indices to be updated
-                    print('indices', indices)
-                    
+
                     if options.dataset is not None:
                         dset_list = [options.dataset]
                     else:
