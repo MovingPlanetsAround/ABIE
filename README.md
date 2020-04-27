@@ -1,6 +1,6 @@
 # Moving Planets Around (MPA) Project
 
-*Moving Planets Around* is an education book project that teaches students to build a state-of-the-art N-Body code for planetary system dynamics from the stretch. The code built throughout the storyline of the book is hosted here. The book will be published by the MIT Press around April 2020. Stay tuned!
+*Moving Planets Around* is an education book project that teaches students to build a state-of-the-art N-Body code for planetary system dynamics from the stretch. The code built throughout the storyline of the book is hosted here. The book will be published by the MIT Press around September 2020. Stay tuned! See: https://mitpress.mit.edu/books/moving-planets-around 
 
 ### The Alice-Bob Integrator Environment (ABIE)
 ------
