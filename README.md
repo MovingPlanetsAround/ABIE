@@ -19,7 +19,7 @@ In the scenarios where the number of particles is large, ABIE makes use of the G
 ABIE can be installed through 
 
     python setup.py install
-Note that `setup.py` is in the parent directory of `ABIE`'s main source code directory. Example scripts can be found in the `/examples` directory.
+Note that `setup.py` is in the parent directory of `ABIE`'s main source code directory. Example scripts can be found in the `/examples` directory. Alternatively, you could install ABIE with `pip install abie`.
 
 ## ABIE output format
 
