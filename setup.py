@@ -6,7 +6,7 @@ except ImportError:
 # from distutils.core import setup, Extension
 import sys
 import sysconfig
-import os 
+import os
 # name is the package name in pip, should be lower case and not conflict with existing packages
 # packages are code source
 
@@ -36,7 +36,7 @@ module_abie = Extension(name = 'libabie',
 setup(name='abie',
       version='0.2',
       description='Alice-Bob Integrator Environment (ABIE), a GPU-accelerated integrator framework for astrophysical N-body simulations',
-      url='https://github.com/maxwelltsai/MPA',
+      url='https://github.com/MovingPlanetsAround/ABIE',
       author='Maxwell X. Cai, Javier Roa, Adrian S. Hamers, Nathan W. C. Leigh',
       author_email='maxwellemail@gmail.com',
       license='BSD 2-Clause',
