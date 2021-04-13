@@ -23,18 +23,18 @@ if sys.platform == 'darwin':
     extra_link_args=['-Wl,-install_name,@rpath/libabie'+suffix]
 
 module_abie = Extension(name = 'libabie',
-                        sources = ['abie/integrator_gauss_radau15.c',
-                            'abie/integrator_wisdom_holman.c',
-                            'abie/integrator_runge_kutta.c',
-                            'abie/common.c',
-                            'abie/additional_forces.c'],
-                        include_dirs = ['abie'],
+                        sources = ['src/integrator_gauss_radau15.c',
+                            'src/integrator_wisdom_holman.c',
+                            'src/integrator_runge_kutta.c',
+                            'src/common.c',
+                            'src/additional_forces.c'],
+                        include_dirs = ['src'],
                         extra_compile_args=['-fstrict-aliasing', '-O3','-std=c99','-fPIC', '-shared', '-fcommon'],
                         extra_link_args=extra_link_args,
                         )
 
 setup(name='abie',
-      version='0.3',
+      version='0.3.2',
       description='Alice-Bob Integrator Environment (ABIE), a GPU-accelerated integrator framework for astrophysical N-body simulations',
       url='https://github.com/MovingPlanetsAround/ABIE',
       author='Maxwell X. Cai, Javier Roa, Adrian S. Hamers, Nathan W. C. Leigh',
