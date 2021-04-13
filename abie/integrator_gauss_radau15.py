@@ -1,7 +1,7 @@
-from integrator import Integrator
-from ode import ODE
+from abie.integrator import Integrator
+from abie.ode import ODE
 import numpy as np
-from events import *
+from abie.events import *
 
 __integrator__ = 'GaussRadau15'
 

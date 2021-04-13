@@ -1,7 +1,7 @@
-from integrator import Integrator
+from abie.integrator import Integrator
 import numpy as np
-from events import *
-from ode import ODE
+from abie.events import *
+from abie.ode import ODE
 import sys
 
 __integrator__ = 'WisdomHolman'

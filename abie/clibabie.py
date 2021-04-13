@@ -1,7 +1,8 @@
 import ctypes
 import os
 import numpy as np
-from events import CollisionException, CloseEncounterException
+import sysconfig
+from abie.events import CollisionException, CloseEncounterException
 
 
 class CLibABIE(object):
@@ -9,6 +10,11 @@ class CLibABIE(object):
     def __init__(self):
         __current_dir__ = os.path.dirname(os.path.realpath(__file__))
         lib_path = os.path.join(__current_dir__, 'libabie.so')
+
+        suffix = sysconfig.get_config_var('EXT_SUFFIX')
+        if suffix is None:
+            suffix = ".so"
+        lib_path = os.path.join(__current_dir__, '..', 'libabie'+suffix)
         if not os.path.isfile(lib_path):
             # try to find the library from the parent directory
             lib_path = os.path.join(os.path.abspath(os.path.join(__current_dir__, os.pardir)), 'libabie.so')

@@ -14,9 +14,9 @@ import glob
 import os
 import sys
 import numpy as np
-from particles import Particles
-from clibabie import CLibABIE
-from data_io import DataIO
+from abie.particles import Particles
+from abie.clibabie import CLibABIE
+from abie.data_io import DataIO
 
 __mpa_dir__ = os.path.dirname(os.path.abspath(__file__))
 __user_shell_dir__ = os.getcwd()

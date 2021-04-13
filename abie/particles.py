@@ -1,6 +1,6 @@
 import numpy as np
-from particle import Particle
-from tools import Tools
+from abie.particle import Particle
+from abie.tools import Tools
 from six import string_types
 
 
