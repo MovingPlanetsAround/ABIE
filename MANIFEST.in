@@ -1,0 +1,15 @@
+include src/additional_forces.c
+include src/bodysystemcuda.cu
+include src/common.c
+include src/common.h
+include src/gpuforce.cu
+include src/helper_cuda.h
+include src/helper_string.h
+include src/integrator_gauss_radau15.c
+include src/integrator_gauss_radau15.h
+include src/integrator_runge_kutta.c
+include src/integrator_runge_kutta.h
+include src/integrator_wisdom_holman.c
+include src/integrator_wisdom_holman.h
+include src/Makefile
+include README.md

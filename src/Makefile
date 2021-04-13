@@ -55,4 +55,4 @@ endif
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
-	rm *.o *.so *.pyc
+	rm *.o *.so 
