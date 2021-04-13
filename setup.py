@@ -29,7 +29,7 @@ module_abie = Extension(name = 'libabie',
                             'abie/common.c',
                             'abie/additional_forces.c'],
                         include_dirs = ['abie'],
-                        extra_compile_args=['-fstrict-aliasing', '-O3','-std=c99','-march=native','-fPIC', '-shared', '-fcommon'],
+                        extra_compile_args=['-fstrict-aliasing', '-O3','-std=c99','-fPIC', '-shared', '-fcommon'],
                         extra_link_args=extra_link_args,
                         )
 
