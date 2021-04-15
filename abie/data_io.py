@@ -73,12 +73,15 @@ class DataIO(object):
         Write the simulation data buffer to the HDF5 file unconditionally.
         :return:
         """
+        if self.buf_cursor == 0:
+            # already flushed
+            return
 
         if self.h5_file is None:
             self.h5_file = h5py.File(self.output_file_name, 'w')
             self.h5_file.attrs['G'] = self.CONST_G
         h5_step_group = self.h5_file.create_group('Step#%d' % self.h5_step_id)
-   
+
         state_dict = {
             'time': self.buf_t[:self.buf_cursor],
             'mass': self.buf_mass[:self.buf_cursor],
