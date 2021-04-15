@@ -244,6 +244,22 @@ class ABIE(object):
             self.__integrator.store_dt = self.__store_dt
             self.__integrator.buffer_len = self.__buffer_len
 
+    @property
+    def data(self):
+        self.integrator.buf.flush()
+        return self.integrator.buf.recorder.data 
+
+    def record_simulation(self,particles=None, quantities=None):
+        if self.integrator.buf.recorder is not None:
+            self.integrator.buf.recorder.set_monitored_particles(particles)
+            self.integrator.buf.recorder.set_monitored_quantities(quantities)
+            return self.integrator.buf.recorder
+        else:
+            from recorder import SimulationDataRecorder
+            self.integrator.buf.recorder = SimulationDataRecorder(particles, quantities)
+            return self.integrator.buf.recorder
+
+
     def initialize(self, config=None):
         # Initialize the integrator
         self.__integrators = Integrator.load_integrators()

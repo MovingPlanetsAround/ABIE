@@ -24,7 +24,7 @@ def locate_cuda():
                 if os.path.exists(os.path.join(home, 'include')) and os.path.exists(os.path.join(home, 'lib64')):
                     cudaconfig = {'home': home, 'nvcc': nvcc, 'include': os.path.join(home, 'include'), 'lib64': os.path.join(home, 'lib64')}
                     return cudaconfig
-        return None 
+        return None
 
 def customize_compiler_for_nvcc(self):
     """
@@ -36,7 +36,7 @@ def customize_compiler_for_nvcc(self):
     the OO route, I have this. Note, it's kindof like a wierd functional
     subclassing going on.
     """
-    
+
     # tell the compiler it can processes .cu
     self.src_extensions.append('.cu')
 
@@ -78,7 +78,7 @@ def find_files_with_ext(path, ext):
                 current_ext = name.split(".")[-1]
             except IndexError:
                 continue
-            
+
             if current_ext == ext:
                 files_list.append(join(root, name))
     return files_list
@@ -87,7 +87,7 @@ suffix = sysconfig.get_config_var('EXT_SUFFIX')
 if suffix is None:
     suffix = ".so"
 
-extra_link_args=['-fcommon']
+extra_link_args = []
 if sys.platform == 'darwin':
     from distutils import sysconfig
     vars = sysconfig.get_config_vars()
@@ -103,10 +103,13 @@ sources = ['src/integrator_gauss_radau15.c',
 # Locate CUDA paths
 CUDA = locate_cuda()
 
+gcc_compile_flags = ['-fstrict-aliasing', '-O3','-std=c99','-fPIC', '-shared', '-fcommon', '-fcommon']
 if CUDA is not None:
     # CUDA/GPU detected on the system
     sources.append('src/gpuforce.cu')
     sources.append('src/bodysystemcuda.cu')
+    extra_link_args = ['-fPIC', '-DGPU', '-O3', '-g', '-lcudart', '-lstdc++']
+    gcc_compile_flags.append('-DGPU')
     print('CUDA SDK found! ABIE will be built with GPU support.')
 else:
     print('CUDA SDK  not found! ABIE will be built without GPU support.')
@@ -115,13 +118,13 @@ module_abie = Extension(name = 'libabie',
                         sources = sources,
                         extra_link_args=extra_link_args,
                         extra_compile_args={
-                            'gcc': ['-fstrict-aliasing', '-O3','-std=c99','-fPIC', '-shared', '-fcommon', '-fcommon'],
-                            'nvcc': ['-O3', '--use_fast_math', '--ptxas-options=-v', '-c', '--compiler-options', '-fPIC']
-                            },  
+                            'gcc': gcc_compile_flags,
+                            'nvcc': ['-O3', '-Xcompiler', '-DGPU', '--use_fast_math', '--ptxas-options=-v', '-c', '--compiler-options', '-fPIC']
+                            },
                         )
 
 setup(name='abie',
-      version='0.3.2',
+      version='0.5.0',
       description='Alice-Bob Integrator Environment (ABIE), a GPU-accelerated integrator framework for astrophysical N-body simulations',
       url='https://github.com/MovingPlanetsAround/ABIE',
       author='Maxwell X. Cai, Javier Roa, Adrian S. Hamers, Nathan W. C. Leigh',

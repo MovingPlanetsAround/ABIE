@@ -2,12 +2,14 @@ import toml
 import numpy as np
 import h5py
 import os
+from abie.recorder import SimulationDataRecorder
 
 
 class DataIO(object):
 
     def __init__(self, buf_len=1024, output_file_name='data.hdf5', collision_output_file_name='collisions.txt',
                  close_encounter_output_file_name='close_encounters.txt', CONST_G=1):
+        self.recorder = SimulationDataRecorder()
         self.buf_len = buf_len
         self.buf_initialized = False
         self.buf_t = None  # for the time vector
@@ -71,28 +73,38 @@ class DataIO(object):
         Write the simulation data buffer to the HDF5 file unconditionally.
         :return:
         """
+
         if self.h5_file is None:
             self.h5_file = h5py.File(self.output_file_name, 'w')
             self.h5_file.attrs['G'] = self.CONST_G
         h5_step_group = self.h5_file.create_group('Step#%d' % self.h5_step_id)
-        h5_step_group.create_dataset('time', data=self.buf_t[:self.buf_cursor])
-        h5_step_group.create_dataset('mass', data=self.buf_mass[:self.buf_cursor])
-        h5_step_group.create_dataset('ptype', data=self.buf_ptype[:self.buf_cursor], dtype='int')
-        h5_step_group.create_dataset('hash', data=self.buf_hashes[:self.buf_cursor], dtype='int')
-        h5_step_group.create_dataset('radius', data=self.buf_radius[:self.buf_cursor])
-        h5_step_group.create_dataset('x', data=self.buf_x[:self.buf_cursor])
-        h5_step_group.create_dataset('y', data=self.buf_y[:self.buf_cursor])
-        h5_step_group.create_dataset('z', data=self.buf_z[:self.buf_cursor])
-        h5_step_group.create_dataset('vx', data=self.buf_vx[:self.buf_cursor])
-        h5_step_group.create_dataset('vy', data=self.buf_vy[:self.buf_cursor])
-        h5_step_group.create_dataset('vz', data=self.buf_vz[:self.buf_cursor])
-        h5_step_group.create_dataset('semi', data=self.buf_semi[:self.buf_cursor])
-        h5_step_group.create_dataset('ecc', data=self.buf_ecc[:self.buf_cursor])
-        h5_step_group.create_dataset('inc', data=self.buf_inc[:self.buf_cursor])
+   
+        state_dict = {
+            'time': self.buf_t[:self.buf_cursor],
+            'mass': self.buf_mass[:self.buf_cursor],
+            'ptype': self.buf_ptype[:self.buf_cursor],
+            'hash': self.buf_hashes[:self.buf_cursor],
+            'radius': self.buf_radius[:self.buf_cursor],
+            'x': self.buf_x[:self.buf_cursor],
+            'y': self.buf_y[:self.buf_cursor],
+            'z': self.buf_z[:self.buf_cursor],
+            'vx': self.buf_vx[:self.buf_cursor],
+            'vy': self.buf_vy[:self.buf_cursor],
+            'vz': self.buf_vz[:self.buf_cursor],
+            'a': self.buf_semi[:self.buf_cursor],
+            'ecc': self.buf_ecc[:self.buf_cursor],
+            'inc': self.buf_inc[:self.buf_cursor],
+        }
+        for dset in state_dict.keys():
+            h5_step_group.create_dataset(dset, data=state_dict[dset])
         self.h5_file.flush()
+
         # reset the cursor
         self.h5_step_id += 1
         self.buf_cursor = 0
+
+        # record
+        self.recorder.record(state_dict=state_dict)
 
     def close(self):
         if self.buf_cursor > 0:
