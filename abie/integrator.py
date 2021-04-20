@@ -24,7 +24,7 @@ __user_shell_dir__ = os.getcwd()
 
 class Integrator(object):
 
-    def __init__(self):
+    def __init__(self, particles=None, buffer=None):
         """
         The constructor of an abstract integrator
         """
@@ -39,7 +39,7 @@ class Integrator(object):
         self.t_end = 0.0
         self.h = 0.01  # time step size
         self.store_dt = 100  # storage time step
-        self._particles = None
+        self._particles = particles
         self.acceleration_method = 'ctypes'
         self.output_file = 'data.hdf5'
         self.collision_output_file = 'collisions.txt'
@@ -49,7 +49,7 @@ class Integrator(object):
         self.close_encounter_distance = 0.0
         self.__energy_init = 0.0
         self.__energy = 0.0
-        self.__buf = None
+        self.__buf = buffer
         self.buffer_len = 1024
         self.__initialized = False
 

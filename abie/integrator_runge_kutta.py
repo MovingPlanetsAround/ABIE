@@ -15,13 +15,13 @@ __integrator__ = 'RungeKutta'
 
 class RungeKutta(Integrator):
 
-    def __init__(self):
-        super(self.__class__, self).__init__()
+    def __init__(self, particles=None, buffer=None):
+        super(self.__class__, self).__init__(particles, buffer)
 
     def integrate_ctypes(self, to_time=None):
         energy_init = self.calculate_energy()
         dt = min(self.store_dt, self.t_end-self.t)
-        self.libabie.initialize_code(self.CONST_G, self.particles.N)
+        # self.libabie.initialize_code(self.CONST_G, self.particles.N)
         pos = self.particles.positions.copy()
         vel = self.particles.velocities.copy()
         self.libabie.set_state(pos, vel, self.particles.masses, self.particles.radii, self.particles.N, self.CONST_G)

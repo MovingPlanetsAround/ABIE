@@ -39,10 +39,9 @@ sim.collision_output_file = 'abc.collisions.txt'
 sim.close_encounter_output_file = 'abc.ce.txt'
 
 # The output frequency
-sim.store_dt = 0.1
+sim.store_dt = 1
 
 # The integration timestep (does not apply to Gauss-Radau15)
-sim.h = 0.001
 
 # The size of the buffer. The buffer is full when `buffer_len` outputs are
 # generated. In this case, the collective output will be flushed to the HDF5
@@ -62,6 +61,13 @@ sim.buffer_len = 10000
 sim.initialize()
 
 # perform the integration
-sim.integrate(30)  # the argument `2000` is optional if `sim.t_end` is specified in the context
+sim.integrate(300) 
 
+sim.integrator = 'WisdomHolman'
+sim.h = 0.1
+sim.integrate(600) 
+
+sim.integrator = 'GaussRadau15'
+sim.h = 0.1
+sim.integrate(900) 
 sim.stop()

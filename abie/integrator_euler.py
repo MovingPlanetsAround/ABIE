@@ -7,8 +7,8 @@ __integrator__ = 'Euler'
 
 class Euler(Integrator):
 
-    def __init__(self):
-        super(Euler, self).__init__()
+    def __init__(self, particles=None, buffer=None):
+        super(Euler, self).__init__(particles, buffer)
         self.__initialized = False
 
     def integrate(self, to_time=None):

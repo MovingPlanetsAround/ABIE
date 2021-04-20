@@ -15,22 +15,25 @@ from abie.integrator import Integrator
 import numpy as np
 import sys
 from abie.data_io import DataIO
+from abie.particles import Particles
 
 
 class ABIE(object):
 
-    def __init__(self):
+    def __init__(self, CONST_G=4*np.pi**2, CONST_C=0.0, buffer_len=1024, h=0.1, store_dt=100):
         # =================== CONSTANTS ==================
         # by default, using the square of the Gaussian gravitational constant
-        self.__CONST_G = 0.000295912208232213  # units: (AU^3/day^2)
-        self.__CONST_C = 0.0  # speed of light; PN terms will be calculated if CONST_C > 0
+        self.__CONST_G = CONST_G
+        self.__CONST_C = CONST_C  # speed of light; PN terms will be calculated if CONST_C > 0
 
         # # =================== VARIABLES ==================
         self.__t = 0.0
         self.__t_start = 0.0
         self.__t_end = 0.0
-        self.__h = 0.0
-        self.__store_dt = 100  # output is triggered per 100 time units
+        self.__h = h
+        self._particles = None
+        self.__buf = None
+        self.__store_dt = store_dt  # output is triggered per 100 time units
         self.__buffer_len = 1024  # size of dataset in a hdf5 group
         self.__max_close_encounter_events = 1
         self.__max_collision_events = 1
@@ -38,11 +41,26 @@ class ABIE(object):
         # self.acceleration_method = 'numpy'
 
         # load integrator modules
-        self.__integrators = None  # a collection of integrators loaded from modules
+        self.__integrator_modules = None  # a collection of integrators loaded from modules
+        self.__integrator_instances = dict()
         self.__integrator = None  # the actual, active integrator instance
         self.output_file = 'data.hdf5'
         self.__close_encounter_output_file = 'close_encounters.txt'
         self.__collision_output_file = 'collisions.txt'
+
+    @property
+    def particles(self):
+        if self._particles is None:
+            self._particles = Particles(self.CONST_G)
+        return self._particles
+
+    @property
+    def buffer(self):
+        if self.__buf is None:
+            self.__buf = DataIO(buf_len=self.__buffer_len,
+                                output_file_name=self.output_file,
+                                CONST_G=self.CONST_G)
+        return self.__buf
 
     @property
     def max_close_encounter_events(self):
@@ -113,18 +131,6 @@ class ABIE(object):
         self.__collision_output_file = value
         if self.__integrator is not None:
             self.__integrator.collision_output_file = value
-
-    @property
-    def integrator(self):
-        if self.__integrator is None:
-            raise RuntimeError('Integrator not set!')
-        return self.__integrator
-
-    @property
-    def particles(self):
-        if self.__integrator is None:
-            raise RuntimeError('Particle sets undefined because the integrator is not set!')
-        return self.__integrator.particles
 
     @property
     def t(self):
@@ -205,20 +211,6 @@ class ABIE(object):
             self.__integrator.store_dt = self.__store_dt
 
     @property
-    def buffer_len(self):
-        if self.__integrator is not None:
-            self.__buffer_len = self.__integrator.buffer_len
-            return self.__buffer_len
-        else:
-            return self.__buffer_len
-
-    @buffer_len.setter
-    def buffer_len(self, value):
-        self.__buffer_len = value
-        if self.__integrator is not None:
-            self.__integrator.buffer_len = self.__buffer_len
-
-    @property
     def acceleration_method(self):
         return self.integrator.acceleration_method
 
@@ -226,43 +218,56 @@ class ABIE(object):
     def acceleration_method(self, value):
         self.__integrator.acceleration_method = value
 
+    @property
+    def integrator(self):
+        if self.__integrator is None:
+            raise RuntimeError('Integrator not set!')
+        return self.__integrator
+
+
     @integrator.setter
     def integrator(self, name_of_integrator):
-        if self.__integrators is None:
-            self.__integrators = Integrator.load_integrators()
-        print(('Setting the integrator to %s' % name_of_integrator))
+        if self.__integrator_modules is None:
+            self.__integrator_modules = Integrator.load_integrators()
+        print(('Selecting %s as the active integrator.' % name_of_integrator))
         # populate the parameters to the integrator
-        if name_of_integrator in self.__integrators:
-            self.__integrator = getattr(self.__integrators[name_of_integrator], name_of_integrator)()
+        if name_of_integrator in self.__integrator_modules:
+            if name_of_integrator not in self.__integrator_instances:
+                self.__integrator = getattr(self.__integrator_modules[name_of_integrator], name_of_integrator)(self.particles, self.buffer)
+                self.__integrator_instances[name_of_integrator] = self.__integrator
+            else:
+                self.__integrator = self.__integrator_instances[name_of_integrator]
             self.__integrator.CONST_G = self.CONST_G
             self.__integrator.t_end = self.__t_end
             self.__integrator.h = self.__h
+            self.__integrator._t = self.__t 
             self.__integrator.t_start = self.__t_start
             self.__integrator.output_file = self.output_file
             self.__integrator.collision_output_file = self.collision_output_file
             self.__integrator.close_encounter_output_file = self.close_encounter_output_file
-            self.__integrator.store_dt = self.__store_dt
-            self.__integrator.buffer_len = self.__buffer_len
+        else:
+            raise ValueError('Unknown integrator %s. Supported integrators are %s' % (name_of_integrator, self.__integrator_modules
+))
 
     @property
     def data(self):
-        self.integrator.buf.flush()
-        return self.integrator.buf.recorder.data 
+        self.buffer.flush()
+        return self.buffer.recorder.data 
 
     def record_simulation(self,particles=None, quantities=None):
-        if self.integrator.buf.recorder is not None:
-            self.integrator.buf.recorder.set_monitored_particles(particles)
-            self.integrator.buf.recorder.set_monitored_quantities(quantities)
-            return self.integrator.buf.recorder
+        if self.buffer.recorder is not None:
+            self.buffer.recorder.set_monitored_particles(particles)
+            self.buffer.recorder.set_monitored_quantities(quantities)
+            return self.buffer.recorder
         else:
             from recorder import SimulationDataRecorder
-            self.integrator.buf.recorder = SimulationDataRecorder(particles, quantities)
-            return self.integrator.buf.recorder
+            self.buffer.recorder = SimulationDataRecorder(particles, quantities)
+            return self.buffer.recorder
 
 
     def initialize(self, config=None):
         # Initialize the integrator
-        self.__integrators = Integrator.load_integrators()
+        self.__integrator_modules = Integrator.load_integrators()
         if self.__integrator is None:
             print('Use GaussRadau15 as the default integrator...')
             self.integrator = 'GaussRadau15'
@@ -317,7 +322,8 @@ class ABIE(object):
 
     def integrate(self, to_time=None):
         try:
-            return self.integrator.integrate(to_time)
+            ret = self.integrator.integrate(to_time)
+            self.__t = self.integrator.t 
         except KeyboardInterrupt as e:
             print('Keyboard Interruption detected (Ctrl+C). Simulation stopped. Stopping the code...')
             self.stop()
@@ -346,9 +352,10 @@ class ABIE(object):
             vel[0] = vx
             vel[1] = vy
             vel[2] = vz
-        return self.integrator.particles.add(pos=pos, vel=vel, mass=mass, name=name, radius=radius,
-                                             ptype=ptype, a=a, e=e, i=i, Omega=Omega,
-                                             omega=omega, f=f, primary=primary)
+        print('self.particles', self.particles)
+        return self.particles.add(pos=pos, vel=vel, mass=mass, name=name, radius=radius,
+                                  ptype=ptype, a=a, e=e, i=i, Omega=Omega,
+                                  omega=omega, f=f, primary=primary)
 
 
 def main():

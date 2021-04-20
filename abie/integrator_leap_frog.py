@@ -7,8 +7,8 @@ __integrator__ = 'LeapFrog'
 
 class LeapFrog(Integrator):
 
-    def __init__(self):
-        super(LeapFrog, self).__init__()
+    def __init__(self, particles=None, buffer=None):
+        super(LeapFrog, self).__init__(particles, buffer)
         self.__initialized = False
 
     def integrate(self, to_time=None):

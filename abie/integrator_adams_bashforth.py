@@ -7,8 +7,8 @@ __integrator__ = 'AdamsBashforth'
 
 class AdamsBashforth(Integrator):
 
-    def __init__(self):
-        super(AdamsBashforth, self).__init__()
+    def __init__(self, particles=None, buffer=None):
+        super(AdamsBashforth, self).__init__(particles, buffer)
         self.__initialized = False
 
     def integrate(self, to_time=None):
