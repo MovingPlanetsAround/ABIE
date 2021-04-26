@@ -44,7 +44,7 @@ class ODE(object):
 
         # Differential equations:
         # - Position
-        nbodies = x.size / 6
+        nbodies = x.size // 6
         dxdt[0:nbodies*3] = x[nbodies*3:]  # velocities
         for j in range(0, nbodies):
             # dxdt[j * 3:3 + j * 3] = x[nbodies * 3 + j * 3:nbodies * 3 + 3 + j * 3]

@@ -8,8 +8,8 @@ __integrator__ = 'GaussRadau15'
 
 class GaussRadau15(Integrator):
 
-    def __init__(self, particles=None, buffer=None):
-        super(self.__class__, self).__init__(particles, buffer)
+    def __init__(self, particles=None, buffer=None, CONST_G=4*np.pi**2, CONST_C=0.0):
+        super(self.__class__, self).__init__(particles, buffer, CONST_G, CONST_C)
         self.tol = 1.e-9
 
     def integrate_ctypes(self, to_time=None):

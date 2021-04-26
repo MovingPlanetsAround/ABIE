@@ -7,8 +7,8 @@ __integrator__ = 'LeapFrog'
 
 class LeapFrog(Integrator):
 
-    def __init__(self, particles=None, buffer=None):
-        super(LeapFrog, self).__init__(particles, buffer)
+    def __init__(self, particles=None, buffer=None, CONST_G=4*np.pi**2, CONST_C=0.0):
+        super(LeapFrog, self).__init__(particles, buffer, CONST_G, CONST_C)
         self.__initialized = False
 
     def integrate(self, to_time=None):
@@ -16,6 +16,8 @@ class LeapFrog(Integrator):
             self.initialize()
             self.__initialized = True
         print(to_time, self.t_end)
+        if to_time is not None:
+            self.t_end = to_time
         # Allocate dense output
         npts = int(np.floor((self.t_end - self.t_start) / self.h) + 1)
 
@@ -30,6 +32,7 @@ class LeapFrog(Integrator):
 
         # Launch integration
         count = 2
+        print('sol_time', sol_time)
         for t in sol_time[count:]:
             dxdt = ODE.ode_n_body_first_order(x, self.CONST_G, self.particles.masses)
             # Advance step

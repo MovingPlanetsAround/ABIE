@@ -7,8 +7,8 @@ __integrator__ = 'Euler'
 
 class Euler(Integrator):
 
-    def __init__(self, particles=None, buffer=None):
-        super(Euler, self).__init__(particles, buffer)
+    def __init__(self, particles=None, buffer=None, CONST_G=4*np.pi**2, CONST_C=0.0):
+        super(Euler, self).__init__(particles, buffer, CONST_G, CONST_C)
         self.__initialized = False
 
     def integrate(self, to_time=None):
@@ -17,6 +17,9 @@ class Euler(Integrator):
             self.__initialized = True
         # Allocate dense output
         npts = int(np.floor((self.t_end - self.t_start) / self.h) + 1)
+
+        if to_time is not None:
+            self.t_end = to_time
 
         # Initial state
         x = np.concatenate((self._particles.positions, self._particles.velocities))

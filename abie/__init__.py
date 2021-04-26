@@ -142,11 +142,7 @@ class ABIE(object):
 
     @property
     def CONST_G(self):
-        if self.__integrator is not None:
-            self.__CONST_G = self.__integrator.CONST_G
-            return self.__CONST_G
-        else:
-            return self.__CONST_G
+        return self.__CONST_G
 
     @CONST_G.setter
     def CONST_G(self, value):
@@ -156,11 +152,7 @@ class ABIE(object):
 
     @property
     def CONST_C(self):
-        if self.__integrator is not None:
-            self.__CONST_C = self.__integrator.CONST_C
-            return self.__CONST_C
-        else:
-            return self.__CONST_C
+        return self.__CONST_C
 
     @CONST_C.setter
     def CONST_C(self, value):
@@ -170,11 +162,7 @@ class ABIE(object):
 
     @property
     def t_end(self):
-        if self.__integrator is not None:
-            self.__t_end = self.integrator.t_end
-            return self.__t_end
-        else:
-            return self.__t_end
+        return self.__t_end
 
     @t_end.setter
     def t_end(self, tf):
@@ -233,7 +221,7 @@ class ABIE(object):
         # populate the parameters to the integrator
         if name_of_integrator in self.__integrator_modules:
             if name_of_integrator not in self.__integrator_instances:
-                self.__integrator = getattr(self.__integrator_modules[name_of_integrator], name_of_integrator)(self.particles, self.buffer)
+                self.__integrator = getattr(self.__integrator_modules[name_of_integrator], name_of_integrator)(self.particles, self.buffer, self.CONST_G, self.CONST_C)
                 self.__integrator_instances[name_of_integrator] = self.__integrator
             else:
                 self.__integrator = self.__integrator_instances[name_of_integrator]

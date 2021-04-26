@@ -24,14 +24,13 @@ __user_shell_dir__ = os.getcwd()
 
 class Integrator(object):
 
-    def __init__(self, particles=None, buffer=None):
+    def __init__(self, particles=None, buffer=None, CONST_G=4*np.pi**2, CONST_C=0.0):
         """
         The constructor of an abstract integrator
         """
         # =================== CONSTANTS ==================
-        # by default, using the square of the Gaussian gravitational constant
-        self.CONST_G = 0.000295912208232213  # units: (AU^3/day^2)
-        self.CONST_C = 0.0  # speed of light; PN terms will be calculated if CONST_C > 0
+        self.CONST_G = CONST_G
+        self.CONST_C = CONST_C  # speed of light; PN terms will be calculated if CONST_C > 0
 
         # =================== VARIABLES ==================
         self._t = 0.0
