@@ -6,9 +6,14 @@ from abie.recorder import SimulationDataRecorder
 
 
 class DataIO(object):
-
-    def __init__(self, buf_len=1024, output_file_name='data.hdf5', collision_output_file_name='collisions.txt',
-                 close_encounter_output_file_name='close_encounters.txt', CONST_G=1):
+    def __init__(
+        self,
+        buf_len=1024,
+        output_file_name="data.hdf5",
+        collision_output_file_name="collisions.txt",
+        close_encounter_output_file_name="close_encounters.txt",
+        CONST_G=1,
+    ):
         self.recorder = SimulationDataRecorder()
         self.buf_len = buf_len
         self.buf_initialized = False
@@ -78,25 +83,25 @@ class DataIO(object):
             return
 
         if self.h5_file is None:
-            self.h5_file = h5py.File(self.output_file_name, 'w')
-            self.h5_file.attrs['G'] = self.CONST_G
-        h5_step_group = self.h5_file.create_group('Step#%d' % self.h5_step_id)
+            self.h5_file = h5py.File(self.output_file_name, "w")
+            self.h5_file.attrs["G"] = self.CONST_G
+        h5_step_group = self.h5_file.create_group("Step#%d" % self.h5_step_id)
 
         state_dict = {
-            'time': self.buf_t[:self.buf_cursor],
-            'mass': self.buf_mass[:self.buf_cursor],
-            'ptype': self.buf_ptype[:self.buf_cursor],
-            'hash': self.buf_hashes[:self.buf_cursor],
-            'radius': self.buf_radius[:self.buf_cursor],
-            'x': self.buf_x[:self.buf_cursor],
-            'y': self.buf_y[:self.buf_cursor],
-            'z': self.buf_z[:self.buf_cursor],
-            'vx': self.buf_vx[:self.buf_cursor],
-            'vy': self.buf_vy[:self.buf_cursor],
-            'vz': self.buf_vz[:self.buf_cursor],
-            'a': self.buf_semi[:self.buf_cursor],
-            'ecc': self.buf_ecc[:self.buf_cursor],
-            'inc': self.buf_inc[:self.buf_cursor],
+            "time": self.buf_t[: self.buf_cursor],
+            "mass": self.buf_mass[: self.buf_cursor],
+            "ptype": self.buf_ptype[: self.buf_cursor],
+            "hash": self.buf_hashes[: self.buf_cursor],
+            "radius": self.buf_radius[: self.buf_cursor],
+            "x": self.buf_x[: self.buf_cursor],
+            "y": self.buf_y[: self.buf_cursor],
+            "z": self.buf_z[: self.buf_cursor],
+            "vx": self.buf_vx[: self.buf_cursor],
+            "vy": self.buf_vy[: self.buf_cursor],
+            "vz": self.buf_vz[: self.buf_cursor],
+            "a": self.buf_semi[: self.buf_cursor],
+            "ecc": self.buf_ecc[: self.buf_cursor],
+            "inc": self.buf_inc[: self.buf_cursor],
         }
         for dset in state_dict.keys():
             h5_step_group.create_dataset(dset, data=state_dict[dset])
@@ -117,7 +122,20 @@ class DataIO(object):
             self.h5_file.close()
             self.h5_file = None
 
-    def store_state(self, t, pos, vel, masses, radii=None, names=None, ptypes=None, a=None, e=None, i=None, energy=None):
+    def store_state(
+        self,
+        t,
+        pos,
+        vel,
+        masses,
+        radii=None,
+        names=None,
+        ptypes=None,
+        a=None,
+        e=None,
+        i=None,
+        energy=None,
+    ):
         # return if the snapshot time is the same as store_t, which means that this time is already stored
         if self.store_t == t:
             return
@@ -166,14 +184,18 @@ class DataIO(object):
         """
         if self.buf_len - self.buf_cursor >= buf_len:
             # the buffer storage is sufficient
-            self.buf_t[self.buf_cursor:self.buf_cursor+buf_len] = buf_t[:buf_len]
-            self.buf_state[self.buf_cursor:self.buf_cursor+buf_len] = buf_state[:buf_len]
+            self.buf_t[self.buf_cursor : self.buf_cursor + buf_len] = buf_t[:buf_len]
+            self.buf_state[self.buf_cursor : self.buf_cursor + buf_len] = buf_state[
+                :buf_len
+            ]
             self.buf_cursor += buf_len
         else:
             # full the buffer until it is full, leave the remaining part for the next output
             remaining_buf_len = self.buf_cursor - self.buf_cursor
-            self.buf_t[self.buf_cursor:self.buf_len] = buf_t[:remaining_buf_len]
-            self.buf_state[self.buf_cursor:self.buf_len] = buf_state[:remaining_buf_len]
+            self.buf_t[self.buf_cursor : self.buf_len] = buf_t[:remaining_buf_len]
+            self.buf_state[self.buf_cursor : self.buf_len] = buf_state[
+                :remaining_buf_len
+            ]
             self.buf_cursor = self.buf_len
 
             # trigger file output if the buffer is full
@@ -181,8 +203,12 @@ class DataIO(object):
             self.buf_cursor = 0
 
             # store the remaining part into the emptied buffer
-            self.buf_t[0:buf_len-remaining_buf_len] = buf_t[remaining_buf_len:buf_len]
-            self.buf_state[0:buf_len-remaining_buf_len] = buf_state[remaining_buf_len:buf_len]
+            self.buf_t[0 : buf_len - remaining_buf_len] = buf_t[
+                remaining_buf_len:buf_len
+            ]
+            self.buf_state[0 : buf_len - remaining_buf_len] = buf_state[
+                remaining_buf_len:buf_len
+            ]
 
         # trigger file output if the buffer is full
         if self.buf_cursor == self.buf_len:
@@ -194,13 +220,21 @@ class DataIO(object):
 
     def store_collisions(self, collision_buffer):
         if self.collision_output_file_name is not None:
-            np.savetxt(self.collision_output_file_name, collision_buffer, fmt='%g, %d, %d, %g',
-                       header='Time, Particle 1, Particle 2, Distance')
+            np.savetxt(
+                self.collision_output_file_name,
+                collision_buffer,
+                fmt="%g, %d, %d, %g",
+                header="Time, Particle 1, Particle 2, Distance",
+            )
 
     def store_close_encounters(self, ce_buffer):
         if self.close_encounter_output_file_name is not None:
-            np.savetxt(self.close_encounter_output_file_name, ce_buffer, fmt='%g, %d, %d, %g',
-                       header='Time, Particle 1, Particle 2, Distance')
+            np.savetxt(
+                self.close_encounter_output_file_name,
+                ce_buffer,
+                fmt="%g, %d, %d, %g",
+                header="Time, Particle 1, Particle 2, Distance",
+            )
 
     @staticmethod
     def parse_config_file(config_file):
@@ -212,12 +246,23 @@ class DataIO(object):
     def ic_populate_from_rebound(reb_ic_filename, sim_abie):
         try:
             import rebound
+
             sim_reb = rebound.Simulation().from_file(reb_ic_filename)
             sim_abie.CONST_G = sim_reb.G
             sim_abie.h = sim_reb.dt
             for particle_id in range(sim_reb.N):
                 p = sim_reb.particles[particle_id]
-                sim_abie.add(mass=p.m, x=p.x, y=p.y, z=p.z, vx=p.vx, vy=p.vy, vz=p.vz, name=p.hash.value, radius=p.r)
+                sim_abie.add(
+                    mass=p.m,
+                    x=p.x,
+                    y=p.y,
+                    z=p.z,
+                    vx=p.vx,
+                    vy=p.vy,
+                    vz=p.vz,
+                    name=p.hash.value,
+                    radius=p.r,
+                )
             # data = dict()
             #
             # sim_reb = rebound.Simulation().from_file(reb_ic_filename)
@@ -251,7 +296,7 @@ class DataIO(object):
             # toml.dump(data, open('ss_reb.conf', 'w'))
             # return data
         except ImportError:
-            print('Rebound is not installed. Cannot populate IC from rebound.')
+            print("Rebound is not installed. Cannot populate IC from rebound.")
             return None
 
     @staticmethod
@@ -271,24 +316,34 @@ class DataIO(object):
     def toml_generator(state_vec, G, t0, tf, h, masses, filename):
         data = dict()
         data_phy = dict()
-        data_phy['G'] = G
+        data_phy["G"] = G
 
         data_int = dict()
-        data_int['t0'] = t0
-        data_int['tf'] = tf
-        data_int['h'] = h
+        data_int["t0"] = t0
+        data_int["tf"] = tf
+        data_int["h"] = h
 
         data_ic = dict()
-        ss = ['Sun', 'Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
+        ss = [
+            "Sun",
+            "Mercury",
+            "Venus",
+            "Earth",
+            "Mars",
+            "Jupiter",
+            "Saturn",
+            "Uranus",
+            "Neptune",
+        ]
         for i in range(len(ss)):
-            pos = state_vec[i*3:i*3+3]
-            vel = state_vec[(len(ss)+i)*3:(len(ss)+i)*3+3]
+            pos = state_vec[i * 3 : i * 3 + 3]
+            vel = state_vec[(len(ss) + i) * 3 : (len(ss) + i) * 3 + 3]
             isv = np.append(pos, vel)
             isv = np.append(isv, masses[i])
             data_ic[ss[i]] = isv.tolist()
 
-        data['physical_params'] = data_phy
-        data['integration'] = data_int
-        data['initial_conds'] = data_ic
+        data["physical_params"] = data_phy
+        data["integration"] = data_int
+        data["initial_conds"] = data_ic
 
-        toml.dump(data, open(filename, 'w'))
+        toml.dump(data, open(filename, "w"))

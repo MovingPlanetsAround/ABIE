@@ -4,7 +4,7 @@ import numpy as np
 import ctypes
 import os
 
-__integrator__ = 'RungeKutta'
+__integrator__ = "RungeKutta"
 
 # if not os.path.isfile('libode.so'):
 #     print('Warning! Shared library libode.so not exsit! Trying to compile.')
@@ -14,41 +14,58 @@ __integrator__ = 'RungeKutta'
 
 
 class RungeKutta(Integrator):
-
-    def __init__(self, particles=None, buffer=None, CONST_G=4*np.pi**2, CONST_C=0.0):
+    def __init__(
+        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0
+    ):
         super(self.__class__, self).__init__(particles, buffer, CONST_G, CONST_C)
 
     def integrate_ctypes(self, to_time=None):
         energy_init = self.calculate_energy()
-        dt = min(self.store_dt, self.t_end-self.t)
+        dt = min(self.store_dt, self.t_end - self.t)
         # self.libabie.initialize_code(self.CONST_G, self.particles.N)
         pos = self.particles.positions.copy()
         vel = self.particles.velocities.copy()
-        self.libabie.set_state(pos, vel, self.particles.masses, self.particles.radii, self.particles.N, self.CONST_G)
+        self.libabie.set_state(
+            pos,
+            vel,
+            self.particles.masses,
+            self.particles.radii,
+            self.particles.N,
+            self.CONST_G,
+        )
         energy = self.calculate_energy()
-        print(('t = %f, E/E0 = %g' % (self.t, np.abs(energy-energy_init)/energy_init)))
+        print(
+            ("t = %f, E/E0 = %g" % (self.t, np.abs(energy - energy_init) / energy_init))
+        )
         self.store_state()
         if to_time is not None:
             self.t_end = to_time
 
-
         if self.h == 0.0:
-            print('ERROR: the timestep for RungeKutta is not set!!! Exiting...')
+            print("ERROR: the timestep for RungeKutta is not set!!! Exiting...")
             import sys
+
             sys.exit(0)
 
         while self.t < self.t_end:
             # pos = self.particles.positions.copy()
             # vel = self.particles.velocities.copy()
             # self.libabie.integrator_gauss_radau15(pos, vel, self.particles.masses, self.particles.N, self.CONST_G, self.t, self.t+dt, dt)
-            self.libabie.integrator_rk(self.t, self.t+dt, self.h)
+            self.libabie.integrator_rk(self.t, self.t + dt, self.h)
             self._t += dt
-            self.libabie.get_state(pos, vel, self.particles.masses, self.particles.radii)
+            self.libabie.get_state(
+                pos, vel, self.particles.masses, self.particles.radii
+            )
             self.particles.positions = pos
             self.particles.velocities = vel
             self.store_state()
             energy = self.calculate_energy()
-            print(('t = %f, E/E0 = %g' % (self.t, np.abs(energy-energy_init)/energy_init)))
+            print(
+                (
+                    "t = %f, E/E0 = %g"
+                    % (self.t, np.abs(energy - energy_init) / energy_init)
+                )
+            )
         self.buf.close()
         return 0
 
@@ -111,20 +128,31 @@ class RungeKutta(Integrator):
         for t in sol_time[count:]:
             # Evaluate coefficients
             k1 = ODE.ode_n_body_first_order(x, self.CONST_G, self._particles.masses)
-            k2 = ODE.ode_n_body_first_order(x + 0.5 * self.h * k1, self.CONST_G, self._particles.masses)
-            k3 = ODE.ode_n_body_first_order(x + 0.5 * self.h * k2, self.CONST_G, self._particles.masses)
-            k4 = ODE.ode_n_body_first_order(x + self.h * k3, self.CONST_G, self._particles.masses)
+            k2 = ODE.ode_n_body_first_order(
+                x + 0.5 * self.h * k1, self.CONST_G, self._particles.masses
+            )
+            k3 = ODE.ode_n_body_first_order(
+                x + 0.5 * self.h * k2, self.CONST_G, self._particles.masses
+            )
+            k4 = ODE.ode_n_body_first_order(
+                x + self.h * k3, self.CONST_G, self._particles.masses
+            )
 
             # Advance the state
-            x += (self.h * (k1 + 2 * k2 + 2 * k3 + k4) / 6.0)
+            x += self.h * (k1 + 2 * k2 + 2 * k3 + k4) / 6.0
 
             # Store step
-            self.particles.positions = x[0:self._particles.N * 3]
-            self.particles.velocities = x[self._particles.N * 3:]
+            self.particles.positions = x[0 : self._particles.N * 3]
+            self.particles.velocities = x[self._particles.N * 3 :]
             self._t = t
             self.store_state()
             energy = self.calculate_energy()
-            print(('t = %f, E/E0 = %g' % (self.t, np.abs(energy - energy_init) / energy_init)))
+            print(
+                (
+                    "t = %f, E/E0 = %g"
+                    % (self.t, np.abs(energy - energy_init) / energy_init)
+                )
+            )
             count += 1
         self.buf.close()
         return 0

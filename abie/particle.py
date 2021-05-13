@@ -2,8 +2,19 @@ import numpy as np
 
 
 class Particle(object):
-    def __init__(self, ptype=0, mass=0.0, pos=np.zeros(3), vel=np.zeros(3), radius=0.0, name=None, primary=None):
-        self.ptype = ptype  # particle type. 0: regular particle; 1: massless; 2: low-mass
+    def __init__(
+        self,
+        ptype=0,
+        mass=0.0,
+        pos=np.zeros(3),
+        vel=np.zeros(3),
+        radius=0.0,
+        name=None,
+        primary=None,
+    ):
+        self.ptype = (
+            ptype  # particle type. 0: regular particle; 1: massless; 2: low-mass
+        )
         self.mass = mass  # mass
         self.radius = radius  # radius
         self.name = name  # user-assigned name, optional
@@ -22,9 +33,16 @@ class Particle(object):
     def __repr__(self):
         return "Particle(m={0:g}, x={1:g}, y={2:g}, z={3:g}, vx={4:g}, vy={5:g}, vz={6:g}, r={7:g}, name='{8:s}', hash={9:d})".format(
             self.mass,
-            self.x, self.y, self.z,
-            self.vx, self.vy, self.vz,
-            self.radius, self.name, self.hash)
+            self.x,
+            self.y,
+            self.z,
+            self.vx,
+            self.vy,
+            self.vz,
+            self.radius,
+            self.name,
+            self.hash,
+        )
 
     @property
     def pos(self):
@@ -43,9 +61,9 @@ class Particle(object):
                 self.z = pos_vec[2]
                 self.__pos = pos_vec
             else:
-                raise ValueError('Position vector must be len=3 vector.')
+                raise ValueError("Position vector must be len=3 vector.")
         else:
-            raise TypeError('Position vector must be a numpy vector with len=3.')
+            raise TypeError("Position vector must be a numpy vector with len=3.")
 
     @vel.setter
     def vel(self, vel_vec):
@@ -56,6 +74,6 @@ class Particle(object):
                 self.vz = vel_vec[2]
                 self.__vel = vel_vec
             else:
-                raise ValueError('Velocity vector must be len=3 vector.')
+                raise ValueError("Velocity vector must be len=3 vector.")
         else:
-            raise TypeError('Velocity vector must be a numpy vector with len=3.')
+            raise TypeError("Velocity vector must be a numpy vector with len=3.")

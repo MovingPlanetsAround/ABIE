@@ -23,14 +23,17 @@ __user_shell_dir__ = os.getcwd()
 
 
 class Integrator(object):
-
-    def __init__(self, particles=None, buffer=None, CONST_G=4*np.pi**2, CONST_C=0.0):
+    def __init__(
+        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0
+    ):
         """
         The constructor of an abstract integrator
         """
         # =================== CONSTANTS ==================
         self.CONST_G = CONST_G
-        self.CONST_C = CONST_C  # speed of light; PN terms will be calculated if CONST_C > 0
+        self.CONST_C = (
+            CONST_C  # speed of light; PN terms will be calculated if CONST_C > 0
+        )
 
         # =================== VARIABLES ==================
         self._t = 0.0
@@ -39,10 +42,10 @@ class Integrator(object):
         self.h = 0.01  # time step size
         self.store_dt = 100  # storage time step
         self._particles = particles
-        self.acceleration_method = 'ctypes'
-        self.output_file = 'data.hdf5'
-        self.collision_output_file = 'collisions.txt'
-        self.close_encounter_output_file = 'close_encounters.txt'
+        self.acceleration_method = "ctypes"
+        self.output_file = "data.hdf5"
+        self.collision_output_file = "collisions.txt"
+        self.close_encounter_output_file = "close_encounters.txt"
         self.max_close_encounter_events = 1
         self.max_collision_events = 1
         self.close_encounter_distance = 0.0
@@ -68,9 +71,11 @@ class Integrator(object):
     @property
     def buf(self):
         if self.__buf is None:
-            self.__buf = DataIO(buf_len=self.buffer_len,
-                                output_file_name=self.output_file,
-                                CONST_G=self.CONST_G)
+            self.__buf = DataIO(
+                buf_len=self.buffer_len,
+                output_file_name=self.output_file,
+                CONST_G=self.CONST_G,
+            )
         return self.__buf
 
     @staticmethod
@@ -80,35 +85,41 @@ class Integrator(object):
         :return: a dict of integrator class objects, mapping the name of the integrator to the class object
         """
         mod_dict = dict()
-        module_candidates = glob.glob(os.path.join(__mpa_dir__, 'integrator_*.py'))
+        module_candidates = glob.glob(os.path.join(__mpa_dir__, "integrator_*.py"))
         sys.path.append(__mpa_dir__)  # append the python path
         if __mpa_dir__ != __user_shell_dir__:
             # load the integrator module (if any) also from the current user shell directory
-            module_cwd = glob.glob(os.path.join(__user_shell_dir__, 'integrator_*.py'))
+            module_cwd = glob.glob(os.path.join(__user_shell_dir__, "integrator_*.py"))
             for m_cwd in module_cwd:
                 module_candidates.append(m_cwd)
             sys.path.append(__user_shell_dir__)  # append the python path
         for mod_name in module_candidates:
             mod_name = os.path.basename(mod_name)
-            mod = __import__(mod_name.split('.')[0])
-            if hasattr(mod, '__integrator__'):
+            mod = __import__(mod_name.split(".")[0])
+            if hasattr(mod, "__integrator__"):
                 # it is a valid ABI module, register it as a module
                 mod_dict[mod.__integrator__] = mod
         return mod_dict
 
     def initialize(self):
         if self.__buf is None:
-            self.__buf = DataIO(buf_len=self.buffer_len,
-                                output_file_name=self.output_file,
-                                close_encounter_output_file_name=self.close_encounter_output_file,
-                                collision_output_file_name=self.collision_output_file,
-                                CONST_G=self.CONST_G)
+            self.__buf = DataIO(
+                buf_len=self.buffer_len,
+                output_file_name=self.output_file,
+                close_encounter_output_file_name=self.close_encounter_output_file,
+                collision_output_file_name=self.collision_output_file,
+                CONST_G=self.CONST_G,
+            )
         if self.particles.N > 0:
             # initialize the C library
-            self.libabie.initialize_code(self.CONST_G, self.CONST_C, self.particles.N,
-                                         MAX_CE_EVENTS=self.max_close_encounter_events,
-                                         MAX_COLLISION_EVENTS=self.max_collision_events,
-                                         close_encounter_distance=self.close_encounter_distance)
+            self.libabie.initialize_code(
+                self.CONST_G,
+                self.CONST_C,
+                self.particles.N,
+                MAX_CE_EVENTS=self.max_close_encounter_events,
+                MAX_COLLISION_EVENTS=self.max_collision_events,
+                close_encounter_distance=self.close_encounter_distance,
+            )
             self.buf.initialize_buffer(self.particles.N)
 
     def stop(self):
@@ -120,7 +131,7 @@ class Integrator(object):
 
     def calculate_energy(self):
         # return self._particles.energy
-        if self.acceleration_method == 'ctypes':
+        if self.acceleration_method == "ctypes":
             return self.libabie.get_total_energy()
         else:
             return self._particles.energy
@@ -131,8 +142,15 @@ class Integrator(object):
     def integrator_warmup(self):
         pos = self.particles.positions.copy()
         vel = self.particles.velocities.copy()
-        self.libabie.set_state(pos, vel, self.particles.masses, self.particles.radii, self.particles.N,
-                               self.CONST_G, self.CONST_C)
+        self.libabie.set_state(
+            pos,
+            vel,
+            self.particles.masses,
+            self.particles.radii,
+            self.particles.N,
+            self.CONST_G,
+            self.CONST_C,
+        )
 
     def integrate(self, to_time=None):
         """
@@ -153,7 +171,7 @@ class Integrator(object):
             return
 
         # Note: this dt is not the integrator time step h
-        dt = min(self.store_dt, self.t_end-self.t)
+        dt = min(self.store_dt, self.t_end - self.t)
 
         ret = 0
         # launch the integration
@@ -161,15 +179,24 @@ class Integrator(object):
             if self.__energy_init == 0:
                 self.__energy_init = self.calculate_energy()
             next_t = self.t + dt - ((self.t + dt) % dt)
-            if self.acceleration_method == 'numpy':
+            if self.acceleration_method == "numpy":
                 ret = self.integrate_numpy(next_t)
-            elif self.acceleration_method == 'ctypes':
+            elif self.acceleration_method == "ctypes":
                 ret = self.integrate_ctypes(next_t)
             # the self.t is updated by the subclass
             # energy check
             self.__energy = self.calculate_energy()
-            print(('t = %f, N = %d, dE/E0 = %g' % (self.t, self.particles.N, np.abs(self.__energy - self.__energy_init) / self.__energy_init)))
-            if os.path.isfile('STOP'):
+            print(
+                (
+                    "t = %f, N = %d, dE/E0 = %g"
+                    % (
+                        self.t,
+                        self.particles.N,
+                        np.abs(self.__energy - self.__energy_init) / self.__energy_init,
+                    )
+                )
+            )
+            if os.path.isfile("STOP"):
                 break
 
         if to_time is None:
@@ -189,7 +216,7 @@ class Integrator(object):
         :param to_time: The termination time. If None, it will use the self.t_end value
         :return:
         """
-        raise NotImplementedError('integrate_numpy() method not implemented!')
+        raise NotImplementedError("integrate_numpy() method not implemented!")
 
     def integrate_ctypes(self, to_time):
         """
@@ -198,16 +225,25 @@ class Integrator(object):
         :param to_time: The termination time. If None, it will use the self.t_end value
         :return:
         """
-        raise NotImplementedError('integrate_ctypes() method not implemented!')
+        raise NotImplementedError("integrate_ctypes() method not implemented!")
 
     def store_state(self):
         if self.buf is None:
             self.initialize()
         self.buf.initialize_buffer(self.particles.N)
         elem = self.particles.calculate_aei()
-        self.buf.store_state(self.t, self.particles.positions, self.particles.velocities, self.particles.masses,
-                             radii=self.particles.radii, names=self.particles.hashes, ptypes=self.particles.ptypes,
-                             a=elem[:, 0], e=elem[:, 1], i=elem[:, 2])
+        self.buf.store_state(
+            self.t,
+            self.particles.positions,
+            self.particles.velocities,
+            self.particles.masses,
+            radii=self.particles.radii,
+            names=self.particles.hashes,
+            ptypes=self.particles.ptypes,
+            a=elem[:, 0],
+            e=elem[:, 1],
+            i=elem[:, 2],
+        )
 
     def store_collisions(self, collision_buffer):
         self.buf.store_collisions(collision_buffer)
@@ -217,11 +253,11 @@ class Integrator(object):
 
     def handle_collisions(self, collision_buffer, actions=None):
         if actions is None:
-            actions = ['merge', 'store']
-        if 'store' in actions:
+            actions = ["merge", "store"]
+        if "store" in actions:
             self.store_state()
             self.store_collisions(collision_buffer)
-        if 'merge' in actions:
+        if "merge" in actions:
             collision_buffer = collision_buffer.reshape(len(collision_buffer), 4)
             for coll_pair in range(collision_buffer.shape[0]):
                 pid1 = int(collision_buffer[coll_pair, 1])
@@ -232,16 +268,16 @@ class Integrator(object):
                 self.buf.flush()
                 self.buf.reset_buffer()
                 self.buf.initialize_buffer(self.particles.N)
-        if 'halt' in actions:
-            print('Simulation terminated due to a collision event.')
+        if "halt" in actions:
+            print("Simulation terminated due to a collision event.")
             sys.exit(0)
 
     def handle_close_encounters(self, ce_buffer, actions=None):
         if actions is None:
-            actions = ['merge', 'store']
-        if 'store' in actions:
+            actions = ["merge", "store"]
+        if "store" in actions:
             self.store_state()
             self.store_close_encounters(ce_buffer)
-        if 'halt' in actions:
-            print('Simulation terminated due to a collision event.')
+        if "halt" in actions:
+            print("Simulation terminated due to a collision event.")
             sys.exit(0)
