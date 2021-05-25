@@ -97,6 +97,7 @@ class DataIO(object):
             'a': self.buf_semi[:self.buf_cursor],
             'ecc': self.buf_ecc[:self.buf_cursor],
             'inc': self.buf_inc[:self.buf_cursor],
+            'energy': self.buf_energy[:self.buf_cursor],
         }
         for dset in state_dict.keys():
             h5_step_group.create_dataset(dset, data=state_dict[dset])

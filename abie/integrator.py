@@ -205,9 +205,11 @@ class Integrator(object):
             self.initialize()
         self.buf.initialize_buffer(self.particles.N)
         elem = self.particles.calculate_aei()
+        if self.__energy == 0:
+            self.__energy = self.calculate_energy()
         self.buf.store_state(self.t, self.particles.positions, self.particles.velocities, self.particles.masses,
                              radii=self.particles.radii, names=self.particles.hashes, ptypes=self.particles.ptypes,
-                             a=elem[:, 0], e=elem[:, 1], i=elem[:, 2])
+                             a=elem[:, 0], e=elem[:, 1], i=elem[:, 2], energy=self.__energy)
 
     def store_collisions(self, collision_buffer):
         self.buf.store_collisions(collision_buffer)

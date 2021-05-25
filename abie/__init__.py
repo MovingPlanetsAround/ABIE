@@ -20,7 +20,7 @@ from abie.particles import Particles
 
 class ABIE(object):
 
-    def __init__(self, CONST_G=4*np.pi**2, CONST_C=0.0, buffer_len=1024, h=0.1, store_dt=100):
+    def __init__(self, CONST_G=4*np.pi**2, CONST_C=0.0, integrator='GaussRadau15', h=0.1, store_dt=100, name='simulation', buffer_len=10240):
         # =================== CONSTANTS ==================
         # by default, using the square of the Gaussian gravitational constant
         self.__CONST_G = CONST_G
@@ -34,7 +34,7 @@ class ABIE(object):
         self._particles = None
         self.__buf = None
         self.__store_dt = store_dt  # output is triggered per 100 time units
-        self.__buffer_len = 1024  # size of dataset in a hdf5 group
+        self.__buffer_len = buffer_len  # size of dataset in a hdf5 group
         self.__max_close_encounter_events = 1
         self.__max_collision_events = 1
         self.__close_encounter_distance = 0.0
@@ -44,9 +44,9 @@ class ABIE(object):
         self.__integrator_modules = None  # a collection of integrators loaded from modules
         self.__integrator_instances = dict()
         self.__integrator = None  # the actual, active integrator instance
-        self.output_file = 'data.hdf5'
-        self.__close_encounter_output_file = 'close_encounters.txt'
-        self.__collision_output_file = 'collisions.txt'
+        self.output_file = '%s.hdf5' % name
+        self.__close_encounter_output_file = '%s_ce.txt' % name
+        self.__collision_output_file = '%s_collisions.txt' % name
 
     @property
     def particles(self):
@@ -228,7 +228,7 @@ class ABIE(object):
             self.__integrator.CONST_G = self.CONST_G
             self.__integrator.t_end = self.__t_end
             self.__integrator.h = self.__h
-            self.__integrator._t = self.__t 
+            self.__integrator._t = self.__t
             self.__integrator.t_start = self.__t_start
             self.__integrator.output_file = self.output_file
             self.__integrator.collision_output_file = self.collision_output_file
@@ -240,7 +240,7 @@ class ABIE(object):
     @property
     def data(self):
         self.buffer.flush()
-        return self.buffer.recorder.data 
+        return self.buffer.recorder.data
 
     def record_simulation(self,particles=None, quantities=None):
         if self.buffer.recorder is not None:
@@ -311,7 +311,7 @@ class ABIE(object):
     def integrate(self, to_time=None):
         try:
             ret = self.integrator.integrate(to_time)
-            self.__t = self.integrator.t 
+            self.__t = self.integrator.t
         except KeyboardInterrupt as e:
             print('Keyboard Interruption detected (Ctrl+C). Simulation stopped. Stopping the code...')
             self.stop()
@@ -323,24 +323,18 @@ class ABIE(object):
     def calculate_energy(self):
         return self.integrator.calculate_energy()
 
-    def add(self, pos=None, vel=None, x=None, y=None, z=None, vx=None, vy=None, vz=None, mass=0.0, name=None,
-            radius=0.0, ptype=0, a=None, e=0.0, i=0.0, Omega=0.0, omega=0.0, f=0.0, primary=None):
-        if x is not None and y is not None and z is not None:
+    def add(self, pos=None, vel=None, x=0.0, y=0.0, z=0.0, vx=0.0, vy=0.0, vz=0.0, mass=0.0, name=None,
+            radius=0.0, ptype=0, a=None, e=0.0, i=0.0, Omega=0.0, omega=0.0, f=2*np.pi*np.random.rand(), primary=None):
+        if pos is None:
             pos = np.empty(3, dtype=np.double)
             pos[0] = x
             pos[1] = y
             pos[2] = z
-        if x is not None and y is not None and z is not None:
-            pos = np.empty(3, dtype=np.double)
-            pos[0] = x
-            pos[1] = y
-            pos[2] = z
-        if vx is not None and vy is not None and vz is not None:
+        if vel is None:
             vel = np.empty(3, dtype=np.double)
             vel[0] = vx
             vel[1] = vy
             vel[2] = vz
-        print('self.particles', self.particles)
         return self.particles.add(pos=pos, vel=vel, mass=mass, name=name, radius=radius,
                                   ptype=ptype, a=a, e=e, i=i, Omega=Omega,
                                   omega=omega, f=f, primary=primary)

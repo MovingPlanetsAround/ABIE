@@ -5,18 +5,14 @@ import abie
 import numpy as np
 
 # create an ABIE instance
-sim = abie.ABIE()
+sim = abie.ABIE(name='circumbiary')
 
 # Select integrator. Possible choices are 'GaussRadau15', 'RungeKutta', etc.
 # sim.integrator = 'WisdomHolman'
 sim.integrator = 'GaussRadau15'
 # sim.integrator = 'RungeKutta'
 
-# Use the CONST_G parameter to set units
-sim.CONST_G = 4 * np.pi ** 2
-
 # The termination time (optional; can be overridden by the integrate() function)
-sim.t_end = 1000
 
 # The underlying implementation of the integrator ('ctypes' or 'numpy')
 sim.acceleration_method = 'ctypes'
@@ -33,10 +29,6 @@ sim.add(mass=5.02785431289e-08, a=0.00884615384615, e=0.01, i=-0.0510158147621, 
 
 print(sim.particles)
 
-# The output file name. If not specified, the default is 'data.hdf5'
-sim.output_file = 'abc.h5'
-sim.collision_output_file = 'abc.collisions.txt'
-sim.close_encounter_output_file = 'abc.ce.txt'
 
 # The output frequency
 sim.store_dt = 1
@@ -61,13 +53,6 @@ sim.buffer_len = 10000
 sim.initialize()
 
 # perform the integration
-sim.integrate(300) 
+sim.integrate(300)
 
-sim.integrator = 'WisdomHolman'
-sim.h = 0.1
-sim.integrate(600) 
-
-sim.integrator = 'GaussRadau15'
-sim.h = 0.1
-sim.integrate(900) 
 sim.stop()
