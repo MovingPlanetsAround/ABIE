@@ -1,6 +1,7 @@
 import numpy as np
 import ctypes
 import os
+
 # from clibabie import CLibABIE
 
 # if not os.path.isfile('libabie.so'):
@@ -45,18 +46,18 @@ class ODE(object):
         # Differential equations:
         # - Position
         nbodies = x.size // 6
-        dxdt[0:nbodies*3] = x[nbodies*3:]  # velocities
+        dxdt[0 : nbodies * 3] = x[nbodies * 3 :]  # velocities
         for j in range(0, nbodies):
             # dxdt[j * 3:3 + j * 3] = x[nbodies * 3 + j * 3:nbodies * 3 + 3 + j * 3]
-            Rj = x[j * 3:3 + j * 3]
+            Rj = x[j * 3 : 3 + j * 3]
             aj = Rj * 0
             for k in range(0, nbodies):
                 if j == k:
                     continue
-                Rk = x[k * 3:k * 3 + 3]
+                Rk = x[k * 3 : k * 3 + 3]
                 rel_sep = Rj - Rk
-                aj += (-const_g * masses[k] * rel_sep / np.linalg.norm(rel_sep) ** 3)
-            dxdt[nbodies * 3 + j * 3:nbodies * 3 + 3 + j * 3] = aj  # accelerations
+                aj += -const_g * masses[k] * rel_sep / np.linalg.norm(rel_sep) ** 3
+            dxdt[nbodies * 3 + j * 3 : nbodies * 3 + 3 + j * 3] = aj  # accelerations
 
         # Add extra accelerations
         # dxdt[nbodies * 3:] += perturbation
@@ -76,15 +77,15 @@ class ODE(object):
         # Differential equations:
         # - Position
         for j in range(0, nbodies):
-            Rj = x[j * 3:3 + j * 3]
+            Rj = x[j * 3 : 3 + j * 3]
             aj = Rj * 0
             for k in range(0, nbodies):
                 if j == k:
                     continue
-                Rk = x[k * 3:3 + k * 3]
+                Rk = x[k * 3 : 3 + k * 3]
                 rel_sep = Rj - Rk
                 aj += -const_g * masses[k] * rel_sep / np.linalg.norm(rel_sep) ** 3
-            acc[j * 3:3 + j * 3] = aj
+            acc[j * 3 : 3 + j * 3] = aj
 
         # Add extra accelerations
         # acc += perturbation

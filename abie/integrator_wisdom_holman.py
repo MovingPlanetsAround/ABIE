@@ -4,23 +4,32 @@ from abie.events import *
 from abie.ode import ODE
 import sys
 
-__integrator__ = 'WisdomHolman'
+__integrator__ = "WisdomHolman"
 
 
 class WisdomHolman(Integrator):
-
-    def __init__(self, particles=None, buffer=None, CONST_G=4*np.pi**2, CONST_C=0.0):
+    def __init__(
+        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0
+    ):
         super(self.__class__, self).__init__(particles, buffer, CONST_G, CONST_C)
 
     def integrator_warmup(self):
-        state_vec = np.concatenate((self.particles.positions, self.particles.velocities))
+        state_vec = np.concatenate(
+            (self.particles.positions, self.particles.velocities)
+        )
         helio = WisdomHolman.move_to_helio(state_vec, self.particles.N)
-        pos = helio[0:3*self.particles.N].copy()
-        vel = helio[3*self.particles.N:].copy()
-        self.libabie.set_state(pos, vel, self.particles.masses, self.particles.radii, self.particles.N,
-                               self.CONST_G, self.CONST_C)
+        pos = helio[0 : 3 * self.particles.N].copy()
+        vel = helio[3 * self.particles.N :].copy()
+        self.libabie.set_state(
+            pos,
+            vel,
+            self.particles.masses,
+            self.particles.radii,
+            self.particles.N,
+            self.CONST_G,
+            self.CONST_C,
+        )
         self.__energy_init = self.calculate_energy()
-
 
     def integrate_ctypes(self, to_time=None):
         ret = 0
@@ -29,7 +38,9 @@ class WisdomHolman(Integrator):
             vel = np.empty(3 * self.particles.N)
             self.libabie.integrator_wh(self.t, to_time, self.h)
 
-            self.libabie.get_state(pos, vel, self.particles.masses, self.particles.radii)
+            self.libabie.get_state(
+                pos, vel, self.particles.masses, self.particles.radii
+            )
             self.particles.positions = pos
             self.particles.velocities = vel
             self._t = self.libabie.get_model_time()
@@ -57,41 +68,55 @@ class WisdomHolman(Integrator):
 
         # Move to a heliocentric frame
         helio = WisdomHolman.move_to_helio(x0, self.particles.N)
-        self.particles.positions = helio[0:3*self.particles.N]
-        self.particles.velocities = helio[3*self.particles.N:]
+        self.particles.positions = helio[0 : 3 * self.particles.N]
+        self.particles.velocities = helio[3 * self.particles.N :]
         # helio = x0.copy()
 
         # Initialize: compute Jacobi coordinates and initial acceleration:
-        jacobi = WisdomHolman.helio2jacobi(helio, self.particles.masses, self.particles.N)
-        accel = WisdomHolman.compute_accel(helio, jacobi, self.particles.masses, self.particles.N, self.CONST_G)
+        jacobi = WisdomHolman.helio2jacobi(
+            helio, self.particles.masses, self.particles.N
+        )
+        accel = WisdomHolman.compute_accel(
+            helio, jacobi, self.particles.masses, self.particles.N, self.CONST_G
+        )
         # Compute energy:
         # energy_init = self.calculate_energy()
         # energy_init = WisdomHolman.compute_energy(helio, self.particles.masses, self.particles.N, self.CONST_G)
         t_current = self.t
         while t_current < to_time:
-            helio, accel = WisdomHolman.wh_advance_step(helio, t_current, self.h, self.particles.masses, self.particles.N, accel, self.CONST_G)
+            helio, accel = WisdomHolman.wh_advance_step(
+                helio,
+                t_current,
+                self.h,
+                self.particles.masses,
+                self.particles.N,
+                accel,
+                self.CONST_G,
+            )
             t_current += self.h
         self._t = to_time
-        self.particles.positions = helio[0:3*self.particles.N]
-        self.particles.velocities = helio[3*self.particles.N:]
+        self.particles.positions = helio[0 : 3 * self.particles.N]
+        self.particles.velocities = helio[3 * self.particles.N :]
         self.store_state()
 
         # while self.t < to_time:
 
-            # Advance one step:
-            # next_store_t = self.t + self.store_dt
-                # bary = WisdomHolman.helio2bary(helio, self.particles.masses, self.particles.N)
-            # helio = WisdomHolman.move_to_helio(helio, self.particles.N)
-            # energy = self.calculate_energy()
-            # print 'helio in np', helio
-            # energy = WisdomHolman.compute_energy(helio, self.particles.masses, self.particles.N, self.CONST_G)
-            # print('t = %f, E/E0 = %g' % (self.t, np.abs(energy-energy_init)/energy_init))
+        # Advance one step:
+        # next_store_t = self.t + self.store_dt
+        # bary = WisdomHolman.helio2bary(helio, self.particles.masses, self.particles.N)
+        # helio = WisdomHolman.move_to_helio(helio, self.particles.N)
+        # energy = self.calculate_energy()
+        # print 'helio in np', helio
+        # energy = WisdomHolman.compute_energy(helio, self.particles.masses, self.particles.N, self.CONST_G)
+        # print('t = %f, E/E0 = %g' % (self.t, np.abs(energy-energy_init)/energy_init))
         # self.buf.close()
         return 0
 
     def calculate_energy(self):
         helio = np.concatenate((self.particles.positions, self.particles.velocities))
-        return WisdomHolman.compute_energy(helio, self.particles.masses, self.particles.N, self.CONST_G)
+        return WisdomHolman.compute_energy(
+            helio, self.particles.masses, self.particles.N, self.CONST_G
+        )
 
     def propagate_wh(self, helio, t, h, store_dt, masses, N, accel, G):
         pass
@@ -109,7 +134,7 @@ class WisdomHolman(Integrator):
         :return: vrf: final position vector; vvf: final velocity vector
         """
         # Check for trivial propagation:
-        if (t0 == tf):
+        if t0 == tf:
             vrf = vr0
             vvf = vv0
             return
@@ -132,25 +157,32 @@ class WisdomHolman(Integrator):
         sqrtgm = np.sqrt(gm)
 
         # Initial value of the Keplerian energy:
-        xi = v0 ** 2 * .5 - gm / r0
+        xi = v0 ** 2 * 0.5 - gm / r0
 
         # Semimajor axis:
         sma = -gm / (2 * xi)
         alpha = 1 / sma
 
-        if (alpha > tol_energy):
+        if alpha > tol_energy:
             # Elliptic orbits:
             chi0 = sqrtgm * dt * alpha
-        elif (alpha < tol_energy):
+        elif alpha < tol_energy:
             # Hyperbolic orbits:
-            chi0 = np.sign(dt) * (np.sqrt(-sma) * np.log(-2 * gm * alpha * dt / (np.dot(vr0, vv0)
-                                                                                 + np.sqrt(-gm * sma) * (
-                                                                                 1 - r0 * alpha))))
+            chi0 = np.sign(dt) * (
+                np.sqrt(-sma)
+                * np.log(
+                    -2
+                    * gm
+                    * alpha
+                    * dt
+                    / (np.dot(vr0, vv0) + np.sqrt(-gm * sma) * (1 - r0 * alpha))
+                )
+            )
         else:
             # Parabolic orbits:
             vh = np.cross(vr0, vv0)
             p = np.linalg.norm(vh) ** 2 / gm
-            s = .5 * np.arctan(1 / (3 * np.sqrt(gm / p ** 3) * dt))
+            s = 0.5 * np.arctan(1 / (3 * np.sqrt(gm / p ** 3) * dt))
             w = np.arctan(np.tan(s) ** (1.0 / 3.0))
             chi0 = np.sqrt(p) * 2 / np.tan(2 * w)
 
@@ -164,28 +196,41 @@ class WisdomHolman(Integrator):
             c2, c3 = WisdomHolman.compute_c2c3(psi)
 
             # Propagate radial distance:
-            r = chi0 ** 2 * c2 + np.dot(vr0, vv0) / sqrtgm * chi0 * (1 - psi * c3) \
+            r = (
+                chi0 ** 2 * c2
+                + np.dot(vr0, vv0) / sqrtgm * chi0 * (1 - psi * c3)
                 + r0 * (1 - psi * c2)
+            )
 
             # Auxiliary variable for f and g functions:
-            chi = chi0 + (sqrtgm * dt - chi0 ** 3 * c3 - np.dot(vr0, vv0) / sqrtgm * chi0 ** 2 * c2 \
-                          - r0 * chi0 * (1 - psi * c3)) / r
+            chi = (
+                chi0
+                + (
+                    sqrtgm * dt
+                    - chi0 ** 3 * c3
+                    - np.dot(vr0, vv0) / sqrtgm * chi0 ** 2 * c2
+                    - r0 * chi0 * (1 - psi * c3)
+                )
+                / r
+            )
 
             # Convergence:
-            if (abs(chi - chi0) < tol):
+            if abs(chi - chi0) < tol:
                 break
 
             chi0 = chi
 
-        if (abs(chi - chi0) > tol):
-            print("WARNING: failed to solver Kepler's equation, error = %23.15e\n" % abs(chi - chi0))
+        if abs(chi - chi0) > tol:
+            print(
+                "WARNING: failed to solver Kepler's equation, error = %23.15e\n"
+                % abs(chi - chi0)
+            )
 
         # Compute f and g functions, together with their derivatives:
         f = 1 - chi ** 2 / r0 * c2
         g = dt - chi ** 3 / sqrtgm * c3
         dg = 1 - chi ** 2 / r * c2
         df = sqrtgm / (r * r0) * chi * (psi * c3 - 1)
-
 
         # Propagate states:
         vr = f * vr0 + g * vv0
@@ -202,20 +247,19 @@ class WisdomHolman(Integrator):
         :return: c2, c3: auxiliary C2 and C3 functions
         """
 
-        if (psi > 1e-10):
+        if psi > 1e-10:
             c2 = (1 - np.cos(np.sqrt(psi))) / psi
             c3 = (np.sqrt(psi) - np.sin(np.sqrt(psi))) / np.sqrt(psi ** 3)
 
         else:
-            if (psi < -1e-6):
+            if psi < -1e-6:
                 c2 = (1 - np.cosh(np.sqrt(-psi))) / psi
-                c3 = (np.sinh(np.sqrt(-psi)) - np.sqrt(-psi)) / np.sqrt(-psi ** 3)
+                c3 = (np.sinh(np.sqrt(-psi)) - np.sqrt(-psi)) / np.sqrt(-(psi ** 3))
             else:
                 c2 = 0.5
                 c3 = 1.0 / 6.0
 
         return c2, c3
-
 
     @staticmethod
     def wh_advance_step(x, t, dt, masses, nbodies, accel, G):
@@ -274,7 +318,7 @@ class WisdomHolman(Integrator):
         kick = x.copy()
 
         # Change the momenta:
-        kick[(nbodies + 1) * 3:] += accel[3:] * dt
+        kick[(nbodies + 1) * 3 :] += accel[3:] * dt
 
         return kick
 
@@ -304,15 +348,15 @@ class WisdomHolman(Integrator):
             gm = G * masses[0] * eta / eta0
 
             # Initial conditions:
-            pos0 = x[ibod * 3: (ibod + 1) * 3]
-            vel0 = x[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3]
+            pos0 = x[ibod * 3 : (ibod + 1) * 3]
+            vel0 = x[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3]
 
             # Propagate:
             pos, vel = WisdomHolman.propagate_kepler(0.0, dt, pos0, vel0, gm)
 
             # Store states:
-            drift[ibod * 3: (ibod + 1) * 3] = pos
-            drift[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3] = vel
+            drift[ibod * 3 : (ibod + 1) * 3] = pos
+            drift[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3] = vel
 
             eta0 = eta
 
@@ -340,25 +384,28 @@ class WisdomHolman(Integrator):
             eta[ibod] = masses[ibod] + eta[ibod - 1]
 
         # Assume central body at rest:
-        jacobi[0: 3] = 0.0
-        jacobi[nbodies * 3: (nbodies + 1) * 3] = 0.0
+        jacobi[0:3] = 0.0
+        jacobi[nbodies * 3 : (nbodies + 1) * 3] = 0.0
 
         # Jacobi coordinates of first body coincide with heliocentric, leave as they are.
 
         # Compute internal c.o.m. and momentum:
-        auxR = masses[1] * x[3: 6]
-        auxV = masses[1] * x[(nbodies + 1) * 3: (nbodies + 2) * 3]
+        auxR = masses[1] * x[3:6]
+        auxV = masses[1] * x[(nbodies + 1) * 3 : (nbodies + 2) * 3]
         Ri = auxR / eta[1]
         Vi = auxV / eta[1]
         for ibod in range(2, nbodies):
-            jacobi[ibod * 3: (ibod + 1) * 3] = x[ibod * 3: (ibod + 1) * 3] - Ri
-            jacobi[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3] = \
-                x[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3] - Vi
+            jacobi[ibod * 3 : (ibod + 1) * 3] = x[ibod * 3 : (ibod + 1) * 3] - Ri
+            jacobi[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3] = (
+                x[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3] - Vi
+            )
 
             # Compute the next internal c.o.m. and momentum of the sequence:
-            if (ibod < nbodies - 1):
-                auxR += masses[ibod] * x[ibod * 3: (ibod + 1) * 3]
-                auxV += masses[ibod] * x[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3]
+            if ibod < nbodies - 1:
+                auxR += masses[ibod] * x[ibod * 3 : (ibod + 1) * 3]
+                auxV += (
+                    masses[ibod] * x[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3]
+                )
                 Ri = auxR / eta[ibod]
                 Vi = auxV / eta[ibod]
 
@@ -385,23 +432,28 @@ class WisdomHolman(Integrator):
         for ibod in range(1, nbodies):
             eta[ibod] = masses[ibod] + eta[ibod - 1]
         # Assume central body at rest:
-        helio[0: 3] = 0.0
-        helio[nbodies * 3: (nbodies + 1) * 3] = 0.0
+        helio[0:3] = 0.0
+        helio[nbodies * 3 : (nbodies + 1) * 3] = 0.0
 
         # Heliocentric coordinates of first body coincide with Jacobi, leave as they are.
 
         # Compute internal c.o.m. and momentum:
-        Ri = masses[1] * x[3: 6] / eta[1]
-        Vi = masses[1] * x[(nbodies + 1) * 3: (nbodies + 2) * 3] / eta[1]
+        Ri = masses[1] * x[3:6] / eta[1]
+        Vi = masses[1] * x[(nbodies + 1) * 3 : (nbodies + 2) * 3] / eta[1]
         for ibod in range(2, nbodies):
-            helio[ibod * 3: (ibod + 1) * 3] = x[ibod * 3: (ibod + 1) * 3] + Ri
-            helio[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3] = \
-                x[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3] + Vi
+            helio[ibod * 3 : (ibod + 1) * 3] = x[ibod * 3 : (ibod + 1) * 3] + Ri
+            helio[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3] = (
+                x[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3] + Vi
+            )
 
             # Compute the next internal c.o.m. and momentum of the sequence:
-            if (ibod < nbodies - 1):
-                Ri += masses[ibod] * x[ibod * 3: (ibod + 1) * 3] / eta[ibod]
-                Vi += masses[ibod] * x[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3] / eta[ibod]
+            if ibod < nbodies - 1:
+                Ri += masses[ibod] * x[ibod * 3 : (ibod + 1) * 3] / eta[ibod]
+                Vi += (
+                    masses[ibod]
+                    * x[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3]
+                    / eta[ibod]
+                )
 
         return helio
 
@@ -429,40 +481,56 @@ class WisdomHolman(Integrator):
         inv_rhelio = inv_r3helio
         inv_rjac = inv_r3jac
         for ibod in range(2, nbodies):
-            inv_rhelio[ibod] = 1.0 / np.linalg.norm(helio[ibod * 3: (ibod + 1) * 3])
+            inv_rhelio[ibod] = 1.0 / np.linalg.norm(helio[ibod * 3 : (ibod + 1) * 3])
             inv_r3helio[ibod] = inv_rhelio[ibod] ** 3
-            inv_rjac[ibod] = 1.0 / np.linalg.norm(jac[ibod * 3: (ibod + 1) * 3])
+            inv_rjac[ibod] = 1.0 / np.linalg.norm(jac[ibod * 3 : (ibod + 1) * 3])
             inv_r3jac[ibod] = inv_rjac[ibod] ** 3
 
         # Compute all indirect terms at once:
         accel_ind = np.zeros(3)
         for ibod in range(2, nbodies):
-            accel_ind -= G * masses[ibod] * helio[ibod * 3: (ibod + 1) * 3] * inv_r3helio[ibod]
+            accel_ind -= (
+                G * masses[ibod] * helio[ibod * 3 : (ibod + 1) * 3] * inv_r3helio[ibod]
+            )
         accel_ind = np.concatenate((np.zeros(3), np.tile(accel_ind, nbodies - 1)))
 
         # Compute contribution from central body:
         accel_cent = accel * 0.0
         for ibod in range(2, nbodies):
-            accel_cent[ibod * 3: (ibod + 1) * 3] = G * masses[0] \
-                                                   * (jac[ibod * 3: (ibod + 1) * 3] * inv_r3jac[ibod] \
-                                                      - helio[ibod * 3: (ibod + 1) * 3] * inv_r3helio[ibod])
+            accel_cent[ibod * 3 : (ibod + 1) * 3] = (
+                G
+                * masses[0]
+                * (
+                    jac[ibod * 3 : (ibod + 1) * 3] * inv_r3jac[ibod]
+                    - helio[ibod * 3 : (ibod + 1) * 3] * inv_r3helio[ibod]
+                )
+            )
 
         # Compute third part of the Hamiltonian:
         accel2 = accel * 0.0
         etai = masses[0]
         for ibod in range(2, nbodies):
             etai += masses[ibod - 1]
-            accel2[ibod * 3: (ibod + 1) * 3] = accel2[(ibod - 1) * 3: ibod * 3] \
-                                               + G * masses[ibod] * masses[0] * inv_r3jac[ibod] / etai * jac[ibod * 3: (ibod + 1) * 3]
+            accel2[ibod * 3 : (ibod + 1) * 3] = (
+                accel2[(ibod - 1) * 3 : ibod * 3]
+                + G
+                * masses[ibod]
+                * masses[0]
+                * inv_r3jac[ibod]
+                / etai
+                * jac[ibod * 3 : (ibod + 1) * 3]
+            )
 
         # Compute final part of the Hamiltonian:
         accel3 = accel * 0.0
         for ibod in range(1, nbodies - 1):
             for jbod in range(ibod + 1, nbodies):
-                diff = helio[jbod * 3: (jbod + 1) * 3] - helio[ibod * 3: (ibod + 1) * 3]
+                diff = (
+                    helio[jbod * 3 : (jbod + 1) * 3] - helio[ibod * 3 : (ibod + 1) * 3]
+                )
                 aux = 1.0 / np.linalg.norm(diff) ** 3
-                accel3[jbod * 3: (jbod + 1) * 3] -= G * masses[ibod] * aux * diff
-                accel3[ibod * 3: (ibod + 1) * 3] += G * masses[jbod] * aux * diff
+                accel3[jbod * 3 : (jbod + 1) * 3] -= G * masses[ibod] * aux * diff
+                accel3[ibod * 3 : (ibod + 1) * 3] += G * masses[jbod] * aux * diff
 
         # Add all contributions:
         accel = accel_ind + accel_cent + accel2 + accel3
@@ -487,17 +555,19 @@ class WisdomHolman(Integrator):
         bary = np.zeros(nbodies * 6)
 
         for ibod in range(1, nbodies):
-            bary[0: 3] += masses[ibod] * x[ibod * 3: (ibod + 1) * 3]
-            bary[nbodies * 3: (nbodies + 1) * 3] += masses[ibod] \
-                                                    * x[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3]
+            bary[0:3] += masses[ibod] * x[ibod * 3 : (ibod + 1) * 3]
+            bary[nbodies * 3 : (nbodies + 1) * 3] += (
+                masses[ibod] * x[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3]
+            )
 
         bary = -bary / mtotal
 
         for ibod in range(1, nbodies):
-            bary[ibod * 3: (ibod + 1) * 3] = x[ibod * 3: (ibod + 1) * 3] + bary[0: 3]
-            bary[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3] = \
-                x[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3] \
-                + bary[nbodies * 3: (nbodies + 1) * 3]
+            bary[ibod * 3 : (ibod + 1) * 3] = x[ibod * 3 : (ibod + 1) * 3] + bary[0:3]
+            bary[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3] = (
+                x[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3]
+                + bary[nbodies * 3 : (nbodies + 1) * 3]
+            )
 
         return bary
 
@@ -505,10 +575,13 @@ class WisdomHolman(Integrator):
     def move_to_helio(x, nbodies):
         helio = x.copy()
         for ibod in range(1, nbodies):
-            helio[ibod * 3: (ibod + 1) * 3] = helio[ibod * 3: (ibod + 1) * 3] - helio[0: 3]
-            helio[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3] = \
-                helio[(nbodies + ibod) * 3: (nbodies + ibod + 1) * 3] \
-                - helio[nbodies * 3: (nbodies + 1) * 3]
+            helio[ibod * 3 : (ibod + 1) * 3] = (
+                helio[ibod * 3 : (ibod + 1) * 3] - helio[0:3]
+            )
+            helio[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3] = (
+                helio[(nbodies + ibod) * 3 : (nbodies + ibod + 1) * 3]
+                - helio[nbodies * 3 : (nbodies + 1) * 3]
+            )
         return helio
 
     @staticmethod
@@ -516,17 +589,27 @@ class WisdomHolman(Integrator):
         # Convert to barycentric:
         x = WisdomHolman.helio2bary(helio, masses, nbodies)
 
-        pos = x[0: nbodies * 3]
-        vel = x[nbodies * 3:]
+        pos = x[0 : nbodies * 3]
+        vel = x[nbodies * 3 :]
 
         # Compute energy
         energy = 0.0
         for i in range(0, nbodies):
-            energy += 0.5 * masses[i] * np.linalg.norm(x[(nbodies + i) * 3:(nbodies + 1 + i) * 3]) ** 2
+            energy += (
+                0.5
+                * masses[i]
+                * np.linalg.norm(x[(nbodies + i) * 3 : (nbodies + 1 + i) * 3]) ** 2
+            )
             for j in range(0, nbodies):
-                if (i == j):
+                if i == j:
                     continue
-                energy -= .5 * G * masses[i] * masses[j] / np.linalg.norm(x[i * 3: 3 + i * 3] - x[j * 3: 3 + j * 3])
+                energy -= (
+                    0.5
+                    * G
+                    * masses[i]
+                    * masses[j]
+                    / np.linalg.norm(x[i * 3 : 3 + i * 3] - x[j * 3 : 3 + j * 3])
+                )
 
         return energy
 
@@ -548,10 +631,10 @@ class WisdomHolman(Integrator):
         gm = G * masses[0] + masses[ibody]
 
         # Compute the relative distance:
-        r = np.linalg.norm(x[ibody * 3: (ibody + 1) * 3])
+        r = np.linalg.norm(x[ibody * 3 : (ibody + 1) * 3])
 
         # Relative velocity:
-        v = np.linalg.norm(x[(nbodies + ibody) * 3: (nbodies + ibody + 1) * 3])
+        v = np.linalg.norm(x[(nbodies + ibody) * 3 : (nbodies + ibody + 1) * 3])
 
         # Semimajor axis:
         sma = -gm / (v ** 2 - 2 * gm / r)

@@ -1,3 +1,6 @@
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Downloads](https://pepy.tech/badge/abie)](https://pepy.tech/project/abie)
+[![CodeQL](https://github.com/MovingPlanetsAround/ABIE/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/MovingPlanetsAround/ABIE/actions/workflows/codeql-analysis.yml)
 # Moving Planets Around (MPA) Project
 
 *Moving Planets Around* is an education book project that teaches students to build a state-of-the-art N-Body code for planetary system dynamics from the stretch. The code built throughout the storyline of the book is hosted here. The book has been published by the MIT Press in September 2020. See: https://mitpress.mit.edu/books/moving-planets-around 

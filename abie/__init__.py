@@ -19,12 +19,22 @@ from abie.particles import Particles
 
 
 class ABIE(object):
-
-    def __init__(self, CONST_G=4*np.pi**2, CONST_C=0.0, integrator='GaussRadau15', h=0.1, store_dt=100, name='simulation', buffer_len=10240):
+    def __init__(
+        self,
+        CONST_G=4 * np.pi ** 2,
+        CONST_C=0.0,
+        integrator="GaussRadau15",
+        h=0.1,
+        store_dt=100,
+        name="simulation",
+        buffer_len=10240,
+    ):
         # =================== CONSTANTS ==================
         # by default, using the square of the Gaussian gravitational constant
         self.__CONST_G = CONST_G
-        self.__CONST_C = CONST_C  # speed of light; PN terms will be calculated if CONST_C > 0
+        self.__CONST_C = (
+            CONST_C  # speed of light; PN terms will be calculated if CONST_C > 0
+        )
 
         # # =================== VARIABLES ==================
         self.__t = 0.0
@@ -41,12 +51,14 @@ class ABIE(object):
         # self.acceleration_method = 'numpy'
 
         # load integrator modules
-        self.__integrator_modules = None  # a collection of integrators loaded from modules
+        self.__integrator_modules = (
+            None  # a collection of integrators loaded from modules
+        )
         self.__integrator_instances = dict()
         self.__integrator = None  # the actual, active integrator instance
-        self.output_file = '%s.hdf5' % name
-        self.__close_encounter_output_file = '%s_ce.txt' % name
-        self.__collision_output_file = '%s_collisions.txt' % name
+        self.output_file = "%s.hdf5" % name
+        self.__close_encounter_output_file = "%s_ce.txt" % name
+        self.__collision_output_file = "%s_collisions.txt" % name
 
     @property
     def particles(self):
@@ -57,15 +69,19 @@ class ABIE(object):
     @property
     def buffer(self):
         if self.__buf is None:
-            self.__buf = DataIO(buf_len=self.__buffer_len,
-                                output_file_name=self.output_file,
-                                CONST_G=self.CONST_G)
+            self.__buf = DataIO(
+                buf_len=self.__buffer_len,
+                output_file_name=self.output_file,
+                CONST_G=self.CONST_G,
+            )
         return self.__buf
 
     @property
     def max_close_encounter_events(self):
         if self.__integrator is not None:
-            self.__max_close_encounter_events = self.__integrator.max_close_encounter_events
+            self.__max_close_encounter_events = (
+                self.__integrator.max_close_encounter_events
+            )
             return self.__max_close_encounter_events
         else:
             return self.__max_close_encounter_events
@@ -93,7 +109,9 @@ class ABIE(object):
     @property
     def close_encounter_distance(self):
         if self.__integrator is not None:
-            self.__close_encounter_distance = self.__integrator.max_close_encounter_events
+            self.__close_encounter_distance = (
+                self.__integrator.max_close_encounter_events
+            )
             return self.__close_encounter_distance
         else:
             return self.__close_encounter_distance
@@ -107,7 +125,9 @@ class ABIE(object):
     @property
     def close_encounter_output_file(self):
         if self.__integrator is not None:
-            self.__close_encounter_output_file = self.__integrator.close_encounter_output_file
+            self.__close_encounter_output_file = (
+                self.__integrator.close_encounter_output_file
+            )
             return self.__close_encounter_output_file
         else:
             return self.__close_encounter_output_file
@@ -209,19 +229,20 @@ class ABIE(object):
     @property
     def integrator(self):
         if self.__integrator is None:
-            raise RuntimeError('Integrator not set!')
+            raise RuntimeError("Integrator not set!")
         return self.__integrator
-
 
     @integrator.setter
     def integrator(self, name_of_integrator):
         if self.__integrator_modules is None:
             self.__integrator_modules = Integrator.load_integrators()
-        print(('Selecting %s as the active integrator.' % name_of_integrator))
+        print(("Selecting %s as the active integrator." % name_of_integrator))
         # populate the parameters to the integrator
         if name_of_integrator in self.__integrator_modules:
             if name_of_integrator not in self.__integrator_instances:
-                self.__integrator = getattr(self.__integrator_modules[name_of_integrator], name_of_integrator)(self.particles, self.buffer, self.CONST_G, self.CONST_C)
+                self.__integrator = getattr(
+                    self.__integrator_modules[name_of_integrator], name_of_integrator
+                )(self.particles, self.buffer, self.CONST_G, self.CONST_C)
                 self.__integrator_instances[name_of_integrator] = self.__integrator
             else:
                 self.__integrator = self.__integrator_instances[name_of_integrator]
@@ -232,35 +253,39 @@ class ABIE(object):
             self.__integrator.t_start = self.__t_start
             self.__integrator.output_file = self.output_file
             self.__integrator.collision_output_file = self.collision_output_file
-            self.__integrator.close_encounter_output_file = self.close_encounter_output_file
+            self.__integrator.close_encounter_output_file = (
+                self.close_encounter_output_file
+            )
         else:
-            raise ValueError('Unknown integrator %s. Supported integrators are %s' % (name_of_integrator, self.__integrator_modules
-))
+            raise ValueError(
+                "Unknown integrator %s. Supported integrators are %s"
+                % (name_of_integrator, self.__integrator_modules)
+            )
 
     @property
     def data(self):
         self.buffer.flush()
         return self.buffer.recorder.data
 
-    def record_simulation(self,particles=None, quantities=None):
+    def record_simulation(self, particles=None, quantities=None):
         if self.buffer.recorder is not None:
             self.buffer.recorder.set_monitored_particles(particles)
             self.buffer.recorder.set_monitored_quantities(quantities)
             return self.buffer.recorder
         else:
             from recorder import SimulationDataRecorder
+
             self.buffer.recorder = SimulationDataRecorder(particles, quantities)
             return self.buffer.recorder
-
 
     def initialize(self, config=None):
         # Initialize the integrator
         self.__integrator_modules = Integrator.load_integrators()
         if self.__integrator is None:
-            print('Use GaussRadau15 as the default integrator...')
-            self.integrator = 'GaussRadau15'
+            print("Use GaussRadau15 as the default integrator...")
+            self.integrator = "GaussRadau15"
             self.integrator.initialize()
-            self.integrator.acceleration_method = 'ctypes'
+            self.integrator.acceleration_method = "ctypes"
         else:
             self.__integrator.CONST_G = self.CONST_G
             self.__integrator.t_end = self.__t_end
@@ -270,33 +295,34 @@ class ABIE(object):
             self.__integrator.store_dt = self.__store_dt
             self.__integrator.buffer_len = self.__buffer_len
 
-
         if config is not None:
             # Gravitational parameter
-            self.integrator.CONST_G = np.array(config['physical_params']['G'])
+            self.integrator.CONST_G = np.array(config["physical_params"]["G"])
 
             # Integration parameters
-            self.integrator = config['integration']['integrator']
+            self.integrator = config["integration"]["integrator"]
             self.integrator.initialize()
-            self.integrator.h = float(config['integration']['h'])
-            if 'acc_method' in config['integration']:
-                self.integrator.acceleration_method = config['integration']['acc_method']
+            self.integrator.h = float(config["integration"]["h"])
+            if "acc_method" in config["integration"]:
+                self.integrator.acceleration_method = config["integration"][
+                    "acc_method"
+                ]
             else:
-                self.integrator.acceleration_method = 'ctypes'
+                self.integrator.acceleration_method = "ctypes"
 
             # Load sequence of object names
-            if 'names' in config:
-                names = config['names']
+            if "names" in config:
+                names = config["names"]
             else:
                 names = None
 
             # Initial and final times
             if self.integrator.t_start == 0:
-                self.integrator.t_start = float(config['integration']['t0'])
+                self.integrator.t_start = float(config["integration"]["t0"])
             if self.integrator.t_end == 0:
-                self.integrator.t_end = float(config['integration']['tf'])
-            self.integrator.active_integrator = config['integration']['integrator']
-            DataIO.ic_populate(config['initial_conds'], self, names=names)
+                self.integrator.t_end = float(config["integration"]["tf"])
+            self.integrator.active_integrator = config["integration"]["integrator"]
+            DataIO.ic_populate(config["initial_conds"], self, names=names)
 
     def stop(self):
         """Stop the integrator and clean up the memory"""
@@ -306,14 +332,18 @@ class ABIE(object):
         if ext_acc.ndim == 1 and ext_acc.shape[0] == 3 * self.integrator.particles.N:
             self.integrator.set_additional_forces(ext_acc)
         else:
-            print('WARNING: Additional forces array needs to be 3 * N vector, where N is the number of particles.')
+            print(
+                "WARNING: Additional forces array needs to be 3 * N vector, where N is the number of particles."
+            )
 
     def integrate(self, to_time=None):
         try:
             ret = self.integrator.integrate(to_time)
             self.__t = self.integrator.t
         except KeyboardInterrupt as e:
-            print('Keyboard Interruption detected (Ctrl+C). Simulation stopped. Stopping the code...')
+            print(
+                "Keyboard Interruption detected (Ctrl+C). Simulation stopped. Stopping the code..."
+            )
             self.stop()
             sys.exit(0)
 
@@ -323,8 +353,28 @@ class ABIE(object):
     def calculate_energy(self):
         return self.integrator.calculate_energy()
 
-    def add(self, pos=None, vel=None, x=0.0, y=0.0, z=0.0, vx=0.0, vy=0.0, vz=0.0, mass=0.0, name=None,
-            radius=0.0, ptype=0, a=None, e=0.0, i=0.0, Omega=0.0, omega=0.0, f=2*np.pi*np.random.rand(), primary=None):
+    def add(
+        self,
+        pos=None,
+        vel=None,
+        x=0.0,
+        y=0.0,
+        z=0.0,
+        vx=0.0,
+        vy=0.0,
+        vz=0.0,
+        mass=0.0,
+        name=None,
+        radius=0.0,
+        ptype=0,
+        a=None,
+        e=0.0,
+        i=0.0,
+        Omega=0.0,
+        omega=0.0,
+        f=2 * np.pi * np.random.rand(),
+        primary=None,
+    ):
         if pos is None:
             pos = np.empty(3, dtype=np.double)
             pos[0] = x
@@ -335,20 +385,62 @@ class ABIE(object):
             vel[0] = vx
             vel[1] = vy
             vel[2] = vz
-        return self.particles.add(pos=pos, vel=vel, mass=mass, name=name, radius=radius,
-                                  ptype=ptype, a=a, e=e, i=i, Omega=Omega,
-                                  omega=omega, f=f, primary=primary)
+        return self.particles.add(
+            pos=pos,
+            vel=vel,
+            mass=mass,
+            name=name,
+            radius=radius,
+            ptype=ptype,
+            a=a,
+            e=e,
+            i=i,
+            Omega=Omega,
+            omega=omega,
+            f=f,
+            primary=primary,
+        )
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', help='config file', default=None)
-    parser.add_argument('-o', '--output_file', dest='output_file', help='output data file', default='data.hdf5')
-    parser.add_argument('-r', '--rebound_file', help='Rebound simulation file', default=None)
-    parser.add_argument('-t', '--t_end', type=float, dest='t_end', help='Termination time')
-    parser.add_argument('-d', '--dt', type=float, dest='dt', help='Integration time step (optional for certain integrators)', default=None)
-    parser.add_argument('-s', '--store_dt', type=float, dest='store_dt', help='output time step', default=100)
-    parser.add_argument('-i', '--integrator', dest='integrator', help='Name of the integrator [GaussRadau15|WisdomHolman|RungeKutta|AdamsBashForth|LeapFrog|Euler]', default='GaussRadau15')
+    parser.add_argument("-c", "--config", help="config file", default=None)
+    parser.add_argument(
+        "-o",
+        "--output_file",
+        dest="output_file",
+        help="output data file",
+        default="data.hdf5",
+    )
+    parser.add_argument(
+        "-r", "--rebound_file", help="Rebound simulation file", default=None
+    )
+    parser.add_argument(
+        "-t", "--t_end", type=float, dest="t_end", help="Termination time"
+    )
+    parser.add_argument(
+        "-d",
+        "--dt",
+        type=float,
+        dest="dt",
+        help="Integration time step (optional for certain integrators)",
+        default=None,
+    )
+    parser.add_argument(
+        "-s",
+        "--store_dt",
+        type=float,
+        dest="store_dt",
+        help="output time step",
+        default=100,
+    )
+    parser.add_argument(
+        "-i",
+        "--integrator",
+        dest="integrator",
+        help="Name of the integrator [GaussRadau15|WisdomHolman|RungeKutta|AdamsBashForth|LeapFrog|Euler]",
+        default="GaussRadau15",
+    )
 
     args = parser.parse_args()
     abie = ABIE()
@@ -367,7 +459,6 @@ def main():
         abie.h = args.dt
     abie.store_dt = args.store_dt
     abie.integrate()
-
 
 
 if __name__ == "__main__":

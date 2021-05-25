@@ -2,12 +2,13 @@ from abie.integrator import Integrator
 from abie.ode import ODE
 import numpy as np
 
-__integrator__ = 'Euler'
+__integrator__ = "Euler"
 
 
 class Euler(Integrator):
-
-    def __init__(self, particles=None, buffer=None, CONST_G=4*np.pi**2, CONST_C=0.0):
+    def __init__(
+        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0
+    ):
         super(Euler, self).__init__(particles, buffer, CONST_G, CONST_C)
         self.__initialized = False
 
@@ -34,12 +35,17 @@ class Euler(Integrator):
             x = x + dxdt * self.h
 
             # Store solution
-            self._particles.positions = x[0:self._particles.N * 3]
-            self._particles.velocities = x[self._particles.N * 3:]
+            self._particles.positions = x[0 : self._particles.N * 3]
+            self._particles.velocities = x[self._particles.N * 3 :]
             count += 1
             self._t = t
             self.store_state()
             energy = self.calculate_energy()
-            print(('t = %f, E/E0 = %g' % (self.t, np.abs(energy - energy_init) / energy_init)))
+            print(
+                (
+                    "t = %f, E/E0 = %g"
+                    % (self.t, np.abs(energy - energy_init) / energy_init)
+                )
+            )
         self.buf.close()
         return 0

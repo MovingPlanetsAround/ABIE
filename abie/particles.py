@@ -17,12 +17,12 @@ class Particles(object):
         self.__names = dict()
         self.__N = 0
         self.CONST_G = const_g
-        self.primary = '#COM#'  # '#COM#', '#M_MAX#', '#M_MIN#', or name/ID
+        self.primary = "#COM#"  # '#COM#', '#M_MAX#', '#M_MIN#', or name/ID
 
     def __repr__(self):
-        str_concat = 'Total number of particles: %d\n' % len(self.__particles)
+        str_concat = "Total number of particles: %d\n" % len(self.__particles)
         for pid, p in enumerate(self.__particles):
-            str_concat += (p.__repr__() + '\n')
+            str_concat += p.__repr__() + "\n"
         return str_concat
 
     @property
@@ -75,12 +75,12 @@ class Particles(object):
         if type(pos_vec).__module__ == np.__name__:
             if pos_vec.size == 3 * self.__N:
                 for p_id in range(self.__N):
-                    self.__particles[p_id].pos = pos_vec[3*p_id:3*p_id+3]
+                    self.__particles[p_id].pos = pos_vec[3 * p_id : 3 * p_id + 3]
                 self.__positions = pos_vec
             else:
-                raise ValueError('Position vector must be len=3 vector.')
+                raise ValueError("Position vector must be len=3 vector.")
         else:
-            raise TypeError('Position vector must be a numpy vector with len=3*N.')
+            raise TypeError("Position vector must be a numpy vector with len=3*N.")
 
     @property
     def velocities(self):
@@ -96,19 +96,33 @@ class Particles(object):
         if type(vel_vec).__module__ == np.__name__:
             if vel_vec.size == 3 * self.__N:
                 for p_id in range(self.__N):
-                    self.__particles[p_id].vel = vel_vec[3*p_id:3*p_id+3]
+                    self.__particles[p_id].vel = vel_vec[3 * p_id : 3 * p_id + 3]
                 self.__velocities = vel_vec
             else:
-                raise ValueError('Velocity vector must be len=3*N vector.')
+                raise ValueError("Velocity vector must be len=3*N vector.")
         else:
-            raise TypeError('Position vector must be a numpy vector with len=3.')
+            raise TypeError("Position vector must be a numpy vector with len=3.")
 
     @property
     def masses(self):
         return self.__masses
 
-    def add(self, pos=np.zeros(3), vel=np.zeros(3), mass=0.0, name=None, radius=0.0, ptype=0,
-            a=None, e=0.0, i=0.0, Omega=0.0, omega=0.0, f=0.0, primary=None):
+    def add(
+        self,
+        pos=np.zeros(3),
+        vel=np.zeros(3),
+        mass=0.0,
+        name=None,
+        radius=0.0,
+        ptype=0,
+        a=None,
+        e=0.0,
+        i=0.0,
+        Omega=0.0,
+        omega=0.0,
+        f=0.0,
+        primary=None,
+    ):
         """
         High-level routine to add a particle to the global set according to the pos/vel or elements.
         :param pos: The 3D position vector of the particle
@@ -132,14 +146,17 @@ class Particles(object):
             primary = self.determine_primary_body(primary)
 
             # convert orbital elements to Cartesian coordinates
-            pos, vel = Tools.from_orbital_elements_to_cartesian(mp=mass, ms=primary.mass,
-                                                                semimajor_axis=a,
-                                                                eccentricity=e,
-                                                                inclination=i,
-                                                                longitude_of_ascending_node=Omega,
-                                                                argument_of_periapsis=omega,
-                                                                true_anomaly=f,
-                                                                G=self.CONST_G)
+            pos, vel = Tools.from_orbital_elements_to_cartesian(
+                mp=mass,
+                ms=primary.mass,
+                semimajor_axis=a,
+                eccentricity=e,
+                inclination=i,
+                longitude_of_ascending_node=Omega,
+                argument_of_periapsis=omega,
+                true_anomaly=f,
+                G=self.CONST_G,
+            )
             pos += primary.pos
             vel += primary.vel
         # print name, pos, vel, mass
@@ -149,9 +166,15 @@ class Particles(object):
         self.__masses = np.append(self.__masses, np.array([mass]))
         if name is not None:
             self.__names[name] = self.__N
-        particle = Particle(mass=mass, pos=self.__positions[3*self.__N:3*self.__N+3],
-                            vel=self.__velocities[3*self.__N:3*self.__N+3],
-                            name=name, radius=radius, ptype=ptype, primary=primary_original)
+        particle = Particle(
+            mass=mass,
+            pos=self.__positions[3 * self.__N : 3 * self.__N + 3],
+            vel=self.__velocities[3 * self.__N : 3 * self.__N + 3],
+            name=name,
+            radius=radius,
+            ptype=ptype,
+            primary=primary_original,
+        )
         self.__particles.append(particle)
         self.__N += 1
 
@@ -167,12 +190,12 @@ class Particles(object):
             self.__masses = np.append(self.__masses, np.array([particle.mass]))
             if particle.name is not None:
                 self.__names[particle.name] = self.__N
-            particle.pos = self.__positions[3*self.__N, 3*self.__N+3]
-            particle.vel = self.__velocities[3*self.__N+3, 3*self.__N+6]
+            particle.pos = self.__positions[3 * self.__N, 3 * self.__N + 3]
+            particle.vel = self.__velocities[3 * self.__N + 3, 3 * self.__N + 6]
             self.__particles.append(particle)
             self.__N += 1
         else:
-            raise TypeError('Incompatible particle type.')
+            raise TypeError("Incompatible particle type.")
 
     def remove_particle(self, particle):
         """
@@ -183,12 +206,14 @@ class Particles(object):
         if isinstance(particle, Particle) and (particle in self.particles):
             pid = self.__particles.index(particle)
             self.__positions = np.delete(self.__positions, range(3 * pid, 3 * pid + 3))
-            self.__velocities = np.delete(self.__velocities, range(3 * pid, 3 * pid + 3))
+            self.__velocities = np.delete(
+                self.__velocities, range(3 * pid, 3 * pid + 3)
+            )
             self.__masses = np.delete(self.__masses, pid)
             self.__particles.remove(particle)
             self.__N -= 1
         else:
-            raise TypeError('Incompatible particle type.')
+            raise TypeError("Incompatible particle type.")
 
     def merge_particles_inelastically(self, pid1, pid2):
         """
@@ -211,47 +236,66 @@ class Particles(object):
             if p1.mass >= p2.mass:
                 # merge into p1
                 p1.vel = (p1.mass * p1.vel + p2.mass * p2.vel) / (p1.mass + p2.mass)
-                self.velocities[3*pid1:3*pid1+3] = p1.vel
+                self.velocities[3 * pid1 : 3 * pid1 + 3] = p1.vel
                 p1.mass = p1.mass + p2.mass
                 self.masses[pid1] = p1.mass
-                p1.radius = np.power(np.power(p1.radius, 3.0) + np.power(p2.radius, 3.0), 1.0/3)
+                p1.radius = np.power(
+                    np.power(p1.radius, 3.0) + np.power(p2.radius, 3.0), 1.0 / 3
+                )
                 self.radii[pid1] = p1.radius
                 # search for objects that defines their orbital elements with respect to p2, and change to p1
                 for p_id, p in enumerate(self.__particles):
-                    if (p.primary is not None) and (self.particles[p.primary] == pid2 or self.particles[p.primary] == p2.name):
+                    if (p.primary is not None) and (
+                        self.particles[p.primary] == pid2
+                        or self.particles[p.primary] == p2.name
+                    ):
                         p.primary = pid1
                 self.remove_particle(p2)
-                print(("Merging particles inelastically: #%d + #%d ==> #%d" % (pid1, pid2, pid1)))
+                print(
+                    (
+                        "Merging particles inelastically: #%d + #%d ==> #%d"
+                        % (pid1, pid2, pid1)
+                    )
+                )
             else:
                 # merge into p2
                 p2.vel = (p1.mass * p1.vel + p2.mass * p2.vel) / (p1.mass + p2.mass)
-                self.velocities[3*pid2:3*pid2+3] = p2.vel
+                self.velocities[3 * pid2 : 3 * pid2 + 3] = p2.vel
                 p2.mass = p1.mass + p2.mass
                 self.masses[pid2] = p2.mass
-                p2.radius = np.power(np.power(p1.radius, 3.0) + np.power(p2.radius, 3.0), 1.0/3)
+                p2.radius = np.power(
+                    np.power(p1.radius, 3.0) + np.power(p2.radius, 3.0), 1.0 / 3
+                )
                 self.radii[pid2] = p2.radius
                 # search for objects that defines their orbital elements with respect to p2, and change to p1
                 for p in self.__particles:
-                    if (p.primary is not None) and (self.particles[p.primary] == pid1 or self.particles[p.primary] == p1.name):
+                    if (p.primary is not None) and (
+                        self.particles[p.primary] == pid1
+                        or self.particles[p.primary] == p1.name
+                    ):
                         p.primary = pid2
                 self.remove_particle(p1)
-                print(("Merging particles inelastically: #%d + #%d ==> #%d" % (pid2, pid1, pid2)))
+                print(
+                    (
+                        "Merging particles inelastically: #%d + #%d ==> #%d"
+                        % (pid2, pid1, pid2)
+                    )
+                )
             return 0
         else:
             return -1
-
 
     def __getitem__(self, item):
         if isinstance(item, int):
             if item < len(self.__particles):
                 return self.__particles[item]
             else:
-                raise ValueError('Particle #%d does not exist!' % item)
+                raise ValueError("Particle #%d does not exist!" % item)
         elif isinstance(item, string_types):
             if item in self.__names:
                 return self.__particles[self.__names[item]]
             else:
-                raise ValueError('Particle %s not exist!' % item)
+                raise ValueError("Particle %s not exist!" % item)
         return None
 
     def get_center_of_mass(self, subset=None):
@@ -264,16 +308,16 @@ class Particles(object):
         com_vel = np.array([0.0, 0.0, 0.0])
         if subset is None:
             for pid in range(0, self.N):
-                com_pos += (self.particles[pid].pos * self.particles[pid].mass)
-                com_vel += (self.particles[pid].vel * self.particles[pid].mass)
+                com_pos += self.particles[pid].pos * self.particles[pid].mass
+                com_vel += self.particles[pid].vel * self.particles[pid].mass
             com_pos /= np.sum(self.masses)
             com_vel /= np.sum(self.masses)
             return Particle(mass=np.sum(self.masses), pos=com_pos, vel=com_vel)
         else:
             subset_masses = 0.0
             for pid in subset:
-                com_pos += (self.particles[pid].pos * self.particles[pid].mass)
-                com_vel += (self.particles[pid].vel * self.particles[pid].mass)
+                com_pos += self.particles[pid].pos * self.particles[pid].mass
+                com_vel += self.particles[pid].vel * self.particles[pid].mass
                 subset_masses += self.particles[pid].mass
             com_pos /= subset_masses
             com_vel /= subset_masses
@@ -293,10 +337,15 @@ class Particles(object):
             else:
                 # else use the globally-defined primary
                 primary = self.determine_primary_body(primary)
-            a, e, f, i, om, Om = Tools.from_cartesian_to_orbital_elements(mp=p.mass, ms=primary.mass,
-                                                                          position=np.array([p.x-primary.x, p.y-primary.y, p.z-primary.z]),
-                                                                          velocity=np.array([p.vx-primary.vx, p.vy-primary.vy, p.vz-primary.vz]),
-                                                                          G=self.CONST_G)
+            a, e, f, i, om, Om = Tools.from_cartesian_to_orbital_elements(
+                mp=p.mass,
+                ms=primary.mass,
+                position=np.array([p.x - primary.x, p.y - primary.y, p.z - primary.z]),
+                velocity=np.array(
+                    [p.vx - primary.vx, p.vy - primary.vy, p.vz - primary.vz]
+                ),
+                G=self.CONST_G,
+            )
             orbital_elem[pid, :] = np.array([a, e, i, Om, om, f])
         return orbital_elem
 
@@ -314,20 +363,25 @@ class Particles(object):
             else:
                 # else use the globally-defined primary
                 primary = self.determine_primary_body(primary)
-            a, e, i = Tools.from_cartesian_to_aei(mp=p.mass, ms=primary.mass,
-                                                  position=np.array([p.x-primary.x, p.y-primary.y, p.z-primary.z]),
-                                                  velocity=np.array([p.vx-primary.vx, p.vy-primary.vy, p.vz-primary.vz]),
-                                                  G=self.CONST_G)
+            a, e, i = Tools.from_cartesian_to_aei(
+                mp=p.mass,
+                ms=primary.mass,
+                position=np.array([p.x - primary.x, p.y - primary.y, p.z - primary.z]),
+                velocity=np.array(
+                    [p.vx - primary.vx, p.vy - primary.vy, p.vz - primary.vz]
+                ),
+                G=self.CONST_G,
+            )
             orbital_elem[pid, :] = np.array([a, e, i])
         return orbital_elem
 
     def determine_primary_body(self, primary):
         if primary is None:
-            if self.primary == '#COM#':
+            if self.primary == "#COM#":
                 primary = self.get_center_of_mass()
-            elif self.primary == '#M_MAX#':
+            elif self.primary == "#M_MAX#":
                 primary = self.particles[np.argmax(self.masses)]
-            elif self.primary == '#M_MIN#':
+            elif self.primary == "#M_MIN#":
                 primary = self.particles[np.argmin(self.masses)]
             elif isinstance(self.primary, list):
                 primary = self.get_center_of_mass(subset=self.primary)
@@ -335,7 +389,7 @@ class Particles(object):
                 primary = self.__getitem__(self.primary)
         elif isinstance(primary, string_types):
             if self.__getitem__(primary) is None:
-                raise ValueError('Object with the name %s not found!' % primary)
+                raise ValueError("Object with the name %s not found!" % primary)
             else:
                 primary = self.__getitem__(primary)
         elif isinstance(primary, list):
@@ -351,6 +405,12 @@ class Particles(object):
             for j in range(0, self.N):
                 if i == j:
                     continue
-                e_pot = .5 * self.CONST_G * self.masses[i] * self.masses[j] / np.linalg.norm(self.particles[i].pos - self.particles[j].pos)
+                e_pot = (
+                    0.5
+                    * self.CONST_G
+                    * self.masses[i]
+                    * self.masses[j]
+                    / np.linalg.norm(self.particles[i].pos - self.particles[j].pos)
+                )
                 energy -= e_pot
         return energy
