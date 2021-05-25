@@ -87,5 +87,4 @@ sim.initialize()
 
 # perform the integration
 sim.integrate(300)
-
 sim.stop()
