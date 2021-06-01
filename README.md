@@ -7,6 +7,8 @@
 
 ## The Alice-Bob Integrator Environment (ABIE)
 ------
+In the book *Moving Planets Around*, Alice and Bob are two students interested in building an *N*-body code. With the help from Prof. Starmover, they eventually achieved their ambition. The resulting source code `ABIE` is named after them.
+
 `ABIE` is a general-purpose direct *N*-body library for astrophysical simulations. It is especially well-suited for simulating planetary systems with or without a large number of test particles (e.g., comets, asteroids). `ABIE` implements all its integrators in both Python (for educational purpose) and in C (for performance). The currently supported integrators are:
 
 - Forward Euler integrator 
