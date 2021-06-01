@@ -3,11 +3,11 @@
 [![CodeQL](https://github.com/MovingPlanetsAround/ABIE/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/MovingPlanetsAround/ABIE/actions/workflows/codeql-analysis.yml)
 # Moving Planets Around (MPA) Project
 
-*Moving Planets Around* is an education book project that teaches students to build a state-of-the-art N-Body code for planetary system dynamics from the stretch. The code built throughout the storyline of the book is hosted here. The book has been published by the MIT Press in September 2020. See: https://mitpress.mit.edu/books/moving-planets-around 
+*Moving Planets Around* is an education book project that teaches students to build a state-of-the-art *N*-Body code for planetary system dynamics from the stretch. The code built throughout the storyline of the book is hosted here. The book has been published by the MIT Press in September 2020. See: https://mitpress.mit.edu/books/moving-planets-around 
 
 ## The Alice-Bob Integrator Environment (ABIE)
 ------
-`ABIE` is a general-purpose direct N-body library for astrophysical simulations. It is especially well-suited for simulating planetary systems with or without a large number of test particles (e.g., comets, asteroids). ABIE implements all its integrators in both Python (for educational purpose) and in C (for performance). The currently supported integrators are:
+`ABIE` is a general-purpose direct *N*-body library for astrophysical simulations. It is especially well-suited for simulating planetary systems with or without a large number of test particles (e.g., comets, asteroids). `ABIE` implements all its integrators in both Python (for educational purpose) and in C (for performance). The currently supported integrators are:
 
 - Forward Euler integrator 
 - Leapfrog
@@ -19,10 +19,83 @@
 In the scenarios where the number of particles is large, ABIE makes use of the GPUs (if available) to accelerate the calculation of gravity.
 
 ## Installation
-ABIE can be installed through 
+`ABIE` is a Python library with C backend. Like most Python packages, it can simply be installed with 
 
-    python setup.py install
-Note that `setup.py` is in the parent directory of `ABIE`'s main source code directory. Example scripts can be found in the `/examples` directory. Alternatively, you could install ABIE with `pip install abie`.
+    pip install abie
+
+
+## Getting Started
+
+### Setup a simple planetary system
+A simple `ABIE` simulation can be created like this:
+
+    import abie
+    import numpy as np
+
+    # create an ABIE instance (Units: MSun, au, yr)
+    sim = abie.ABIE(CONST_G=4*np.pi**2, name="example_simulation")
+
+    # select the integrator
+    sim.integrator = "WisdomHolman" 
+
+    # add particles
+    sim.add(mass=1.0, pos=[0., 0., 0.,], vel=[0., 0., 0.,], name="Sun")
+    sim.add(mass=3.e-6, a=1.0, name='Earth', primary='Sun')
+    # Use `sim.add()` to add as many particles as needed
+
+    # print an overview of particles
+    print(sim.particles)
+
+    # initialize the integrator
+    sim.initialize()
+
+    # perform the integration for 1000 years
+    sim.integrate(1000)
+    sim.stop()
+
+In the example above, a simple planetary system is setup, such that a solar-type star named "Sun" is orbited by an Earth-mass planet at a=1 au. A particle can either be added using Cartesian coordinates or orbital elements. The Sun is sitting at the center of the reference frame with zero initial velocity. When the simulation is done, you will find a HDF5 file named `example_simulation.h5` containing all the simulation data. 
+
+
+### Setup a hierarchical system
+It is also very straightforward to set up hierarchical systems. For examiple, consider a moon orbiting a planet, and that particular planet orbits the center-of-mass of a circumbinary stellar system:
+
+    sim.add(mass=1.0, pos=[0., 0., 0.,], vel=[0., 0., 0.,], name="star1") # add the first star
+    sim.add(mass=1.0, a=1, name="star2", primary='star1') # add the second star
+    sim.particles["star1"].primary = sim.particles["star2"] # make the second star also orbit the first one
+    
+    # make a planet orbiting the center-of-mass of star1 and star2
+    sim.add(mass=1.e-5, a=10, e=0.2, i=0.1, name='planet', primary=['star1', 'star2']) 
+
+    # make a moon orbiting the planet
+    sim.add(mass=1.e-9, a=0.01, e=0.0, i=0.0, name='moon', primary='planet') 
+
+### Obtain the simulation data
+All simulation data can be found in the HDF5 output file. Alternative, it is also possible to use the `recorder` facility to record the simulation data. For example, if we are running a Jupyter notebook and would like to plot the orbital elements, we could do
+
+    # tell the recorder that semi-major axes, eccentricities, inclinations, time, and energy error should be recorded
+    sim.record_simulation(quantities=["a", "ecc", "inc", "time", "energy"]).start()
+
+    # perform the integration for some time
+    sim.integrate(200)
+
+After this, the simulation data can be accessed with `sim.data`, which is a dictionary. For example, if we would like to plot the orbital eccentrcities evolution, we could simply do
+
+    import matplotlib.pyplot as plt
+    plt.plot(sim.data['time'], sim.data['ecc'])
+    plt.show()
+Likewise, generate a 2D scatter plot of x-y would be as easy as 
+
+    ...
+    sim.record_simulation(quantities=["x", "y", "z", "time"]).start()
+
+    # perform the integration for some time
+    sim.integrate(200)
+
+    plt.scatter(sim.data['x'], sim.data['y'])
+    ...
+
+
+
 
 ## ABIE output format
 
