@@ -135,8 +135,8 @@ For efficient output, ABIE maintains a buffer to temporarily store its integrati
 ```python
 import h5py
 h5f = h5py.File('data.hdf5', 'r')
-semi = h5f['/Step#0/semi'].value
-ecc = h5f['/Step#0/ecc'].value
+semi = h5f['/Step#0/semi'][()]
+ecc = h5f['/Step#0/ecc'][()]
 ...
 h5f.close()
 ```    
@@ -150,8 +150,8 @@ will generate a flattened file called `data` (still in hdf5 format). In this cas
 ```python
 import h5py
 h5f = h5py.File('data.hdf5', 'r')
-semi = h5f['/semi'].value  # gets the semi-axis array for the entire simulation
-ecc = h5f['/ecc'].value    # gets the eccentricity array for the entire simulation
+semi = h5f['/semi'][()] # gets the semi-axis array for the entire simulation
+ecc = h5f['/ecc'][()]    # gets the eccentricity array for the entire simulation
 ...
 h5f.close()
 ```    
@@ -169,7 +169,7 @@ sim.integrator = 'GaussRadau15' # or 'WisdomHolman', 'LeapFrog', etc.
     
 ## Improve the precision of ABIE
 
-By default, `ABIE` uses double precision. For some special cases (for example, integrating a Kozai-Lidov system where the eccentricity can be very high), the precision of the integrator can be adjusted by simply changing the following lines in `Makefile` from
+By default, `ABIE` uses double precision. For some special cases (for example, integrating a Kozai-Lidov system where the eccentricity can be very high), the precision of the integrator can be adjusted by simply changing the following lines in `src/Makefile` from
 
 ```Makefile
 LONGDOUBLE = 0
@@ -186,7 +186,7 @@ And run `make clean; make` again. This  will causes the integrator to use the [`
 
 ### Accelerate ABIE using CUDA/GPU
 
-`ABIE` supports GPU acceleration. For large `N` systems (N>512), using the GPU could result in substential speed up. To enable the GPU support, modify the `Makefile` from
+When `ABIE` is being installed, the `setup.py` script will automatically determine whether your machine has CUDA GPUs or not. If GPUs are presented in the machine, it will automatically turn on the relevant compilation flags. This could also be done manually if you wish to use `ABIE` as a C library instead. For large `N` systems (N>512), using the GPU could result in substential speed up. To enable the GPU support, modify the `src/Makefile` from
 
 ```Makefile
 GPU = 0
