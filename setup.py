@@ -157,7 +157,7 @@ module_abie = Extension(
 
 setup(
     name="abie",
-    version="0.6.0",
+    version="0.6.1",
     description="Alice-Bob Integrator Environment (ABIE), a GPU-accelerated integrator framework for astrophysical N-body simulations",
     url="https://github.com/MovingPlanetsAround/ABIE",
     author="Maxwell X. Cai, Javier Roa, Adrian S. Hamers, Nathan W. C. Leigh",

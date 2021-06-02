@@ -24,7 +24,7 @@ __user_shell_dir__ = os.getcwd()
 
 class Integrator(object):
     def __init__(
-        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0
+        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0, buf_len=10240
     ):
         """
         The constructor of an abstract integrator
@@ -52,8 +52,9 @@ class Integrator(object):
         self.__energy_init = 0.0
         self.__energy = 0.0
         self.__buf = buffer
-        self.buffer_len = 1024
+        self.buffer_len = buf_len
         self.__initialized = False
+
 
         # =============== C Library =============
         self.libabie = CLibABIE()
