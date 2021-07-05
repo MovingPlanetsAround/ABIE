@@ -11,36 +11,36 @@ void integrate_rk(real *y0, real *dy0, real *masses, real *radii, size_t N, real
     real *vec_tmp = (real *) malloc(6*N*sizeof(real));
     real *vec = (real *) malloc(6*N*sizeof(real));
 
-    for (int i = 0; i < 3 * N; i++) vec[i] = y0[i];
-    for (int i = 3 * N; i < 6 * N; i++) vec[i] = dy0[i - 3 * N];
+    for (size_t i = 0; i < 3 * N; i++) vec[i] = y0[i];
+    for (size_t i = 3 * N; i < 6 * N; i++) vec[i] = dy0[i - 3 * N];
 
     while (t < t_end) {
         ode_n_body_first_order(vec, N, G, masses, k1);
 
-        for (int i = 0; i < 6 * N; i++) {
+        for (size_t i = 0; i < 6 * N; i++) {
             vec_tmp[i] = vec[i] + 0.5 * dt * k1[i];
         }
         ode_n_body_first_order(vec_tmp, N, G, masses, k2);
 
-        for (int i = 0; i < 6 * N; i++) {
+        for (size_t i = 0; i < 6 * N; i++) {
             vec_tmp[i] = vec[i] + 0.5 * dt * k2[i];
         }
         ode_n_body_first_order(vec_tmp, N, G, masses, k3);
 
-        for (int i = 0; i < 6 * N; i++) {
+        for (size_t i = 0; i < 6 * N; i++) {
             vec_tmp[i] = vec[i] + dt * k3[i];
         }
         ode_n_body_first_order(vec_tmp, N, G, masses, k4);
 
         // advance the state
-        for (int i = 0; i < 6 * N; i++) {
+        for (size_t i = 0; i < 6 * N; i++) {
             vec[i] += (dt * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]) / 6.0);
         }
         t += dt;
     }
 
-    for (int i = 0; i < 3 * N; i++) y0[i] = vec[i];
-    for (int i = 3 * N; i < 6 * N; i++) dy0[i - 3 * N] = vec[i];
+    for (size_t i = 0; i < 3 * N; i++) y0[i] = vec[i];
+    for (size_t i = 3 * N; i < 6 * N; i++) dy0[i - 3 * N] = vec[i];
     free(k1);
     free(k2);
     free(k3);

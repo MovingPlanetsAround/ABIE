@@ -85,7 +85,8 @@ void propagate_kepler(real *jacobi_pos, real *jacobi_vel, real gm, real dt, size
     }
 
     // Solve Kepler's equation:
-    real chi, r, cs[2], c2, c3, psi;
+    real cs[2];
+    real chi = 0.0, r = 0.0, c2 = 0.0, c3 = 0.0, psi = 0.0;
     for (size_t j = 0; j < MAX_KEPLER_ITERATION; j++) {
         // Compute universal variable:
         psi = chi0 * chi0 * alpha;

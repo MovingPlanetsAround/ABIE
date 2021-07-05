@@ -20,9 +20,9 @@ size_t calculate_post_newtonian(const real pos[], const real vel[], size_t N, re
 
     real ax, ay, az;
 
-    real r[3], v[3];
+    // real r[3], v[3];
 
-    real CONST_C_LIGHT_P2 = C * C; // CONST_C_LIGHT * CONST_C_LIGHT;
+    // real CONST_C_LIGHT_P2 = C * C; // CONST_C_LIGHT * CONST_C_LIGHT;
     real CONST_C_LIGHT_PM1 = 1.0 / C;
     real CONST_C_LIGHT_PM2 = CONST_C_LIGHT_PM1 * CONST_C_LIGHT_PM1;
     real CONST_C_LIGHT_PM4 = CONST_C_LIGHT_PM2 * CONST_C_LIGHT_PM2;
@@ -42,7 +42,7 @@ size_t calculate_post_newtonian(const real pos[], const real vel[], size_t N, re
     real FAC0_2PN, FAC1_2PN, FAC2_2PN;
     real FAC0_25PN, FAC1_25PN, FAC2_25PN;
 
-    for (int j = 0; j < N; j++){
+    for (size_t j = 0; j < N; j++){
         x = pos[j * 3];
         y = pos[j * 3 + 1];
         z = pos[j * 3 + 2];
@@ -54,7 +54,7 @@ size_t calculate_post_newtonian(const real pos[], const real vel[], size_t N, re
         ax = 0.0;
         ay = 0.0;
         az = 0.0;
-        for (int k = 0; k < N; k++) {
+        for (size_t k = 0; k < N; k++) {
             if (j == k) continue;
             M_k = masses[k];
             GM = G * M_k;

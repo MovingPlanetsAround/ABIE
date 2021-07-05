@@ -7,17 +7,17 @@ size_t ode_n_body_first_order(real *vec, size_t N, real G, const real *masses, r
     real rel_sep3;
     real rel_sep2;
     real GM;
-    for (int i = 0; i < 3 * N; i++){
+    for (size_t i = 0; i < 3 * N; i++){
         dxdt[i] = vec[3*N+i];
     }
-    for (int j = 0; j < N; j++) {
+    for (size_t j = 0; j < N; j++) {
         x = vec[j * 3];
         y = vec[j * 3 + 1];
         z = vec[j * 3 + 2];
         ax = 0.0;
         ay = 0.0;
         az = 0.0;
-        for (int k = 0; k < N; k++) {
+        for (size_t k = 0; k < N; k++) {
             if ((j == k) || (masses[k] == 0)) continue;
             GM = G * masses[k];
             dx = x - vec[k*3];
@@ -45,7 +45,7 @@ size_t ode_n_body_second_order(const real vec[], size_t N, real G, const real ma
     // Calculate the combined accelerations onto particle j
     // i.e. j is the sink, k is the source
 
-    for (int j = 0; j < N; j++){
+    for (size_t j = 0; j < N; j++){
         if (masses[j] < 0.0) {
             // if the mass is negative, the particle is deleted
             continue;
@@ -56,7 +56,7 @@ size_t ode_n_body_second_order(const real vec[], size_t N, real G, const real ma
         ax = 0.0;
         ay = 0.0;
         az = 0.0;
-        for (int k = 0; k < N; k++) {
+        for (size_t k = 0; k < N; k++) {
             if (j == k || masses[k] <= 0.0) continue;
             GM = G * masses[k];
             dx = x - vec[k * 3];
@@ -117,11 +117,11 @@ size_t calculate_accelerations(const real pos[], const real vel[], size_t N, rea
 size_t check_collisions_close_encounters(const real *vec, const real radii[], size_t N, real t) {
     real x, y, z;
     real dx, dy, dz;
-    for (int j = 0; j < N; j++){
+    for (size_t j = 0; j < N; j++){
         x = vec[j * 3];
         y = vec[j * 3 + 1];
         z = vec[j * 3 + 2];
-        for (int k = 0; k < N; k++) {
+        for (size_t k = 0; k < N; k++) {
             if (j == k) continue;
             dx = x - vec[k * 3];
             dy = y - vec[k * 3 + 1];
@@ -160,7 +160,7 @@ size_t check_collisions_close_encounters(const real *vec, const real radii[], si
 
 real *vec_scalar_op(const real *vec, real scalar, size_t N, char op) {
     real *res = (real *) malloc(6*N*sizeof(real));
-    for (int i = 0; i < N; i++) {
+    for (size_t i = 0; i < N; i++) {
         if (op == '+') {
             res[i] = vec[i] + scalar;
         } else if (op == '-') {
@@ -176,7 +176,7 @@ real *vec_scalar_op(const real *vec, real scalar, size_t N, char op) {
 
 real *vec_vec_op(const real *vec1, real *vec2, size_t N, char op) {
     real *res = (real *) malloc(6*N*sizeof(real));
-    for (int i = 0; i < N; i++) {
+    for (size_t i = 0; i < N; i++) {
         if (op == '+') {
             res[i] = vec1[i] + vec2[i];
         } else if (op == '-') {
@@ -192,7 +192,7 @@ real *vec_vec_op(const real *vec1, real *vec2, size_t N, char op) {
 
 real vector_max_abs(const real *vec, size_t N) {
     real max_val = -DBL_MAX;
-    for (int i = 0; i < N; i++) {
+    for (size_t i = 0; i < N; i++) {
         if (max_val < fabs(vec[i])) max_val = fabs(vec[i]);
     }
     return max_val;
@@ -224,7 +224,7 @@ real cross_norm(const real *vec1, const real *vec2) {
 }
 
 int code_inited = 0;
-int initialize_code(double _G, double _C, int _N_MAX, int _MAX_N_CE, int _MAX_N_COLLISIONS) {
+int initialize_code(double _G, double _C, size_t _N_MAX, size_t _MAX_N_CE, size_t _MAX_N_COLLISIONS) {
     if (code_inited > 0) return 0;
     printf("Initializing the code...");
     // define constants and flags
@@ -238,6 +238,9 @@ int initialize_code(double _G, double _C, int _N_MAX, int _MAX_N_CE, int _MAX_N_
 
     G_global = (real) _G;
     C_global = (real) _C;
+
+    // set the devID to -1 until GPU is found and initialized
+    devID = -1;
 
     // allocate
     // TODO: reallocate the memory if N changes
@@ -305,7 +308,7 @@ void reset_collision_buffer() {
     for (size_t i = 0; i < 4 * MAX_N_COLLISIONS; i++) buf_collision_events[i] = 0.0;
 }
 
-void set_state(double *pos_vec, double *vel_vec, double *m_vec, double *r_vec, int N, double G, double C){
+void set_state(double *pos_vec, double *vel_vec, double *m_vec, double *r_vec, size_t N, double G, double C){
     // initialize if the global arrays are not allocated
     initialize_code(G, C, N, MAX_N_CE, MAX_N_COLLISIONS);
 
@@ -360,7 +363,7 @@ double calculate_energy() {
  * WARNING: if the ext_acc[] array is not updated every integration timestep by
  * an external routine, it will be treated as constant during the two updates!
 */
-size_t set_additional_forces(int N, double ext_acc[]) {
+size_t set_additional_forces(size_t N, double ext_acc[]) {
     // set the flag to 10
     ENABLE_EXT_ACC = 10;
 

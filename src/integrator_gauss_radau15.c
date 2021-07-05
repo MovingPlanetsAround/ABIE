@@ -2,7 +2,7 @@
 #include "integrator_gauss_radau15.h"
 
 // Global variables
-int nh = 8;
+size_t nh = 8;
 size_t dim = 0;
 int initialized = 0;
 
@@ -30,14 +30,14 @@ real initial_time_step(const real* y0, real* dy0, real G, real * masses, real *r
     }
 
     // # Perform one Euler step
-    for (int i = 0; i < 3 * nbodies; i++) {
+    for (size_t i = 0; i < 3 * nbodies; i++) {
         y1[i] = y0[i] + dt0 * dy0[i];
         dy1[i] = dy0[i] + dt0 * f0[i];
     }
     // # Call function
     calculate_accelerations(y1, dy1, nbodies, G, masses, radii, F1);
     d2 = -DBL_MAX;
-    for (int i = 0; i < nbodies * 3; i++) {
+    for (size_t i = 0; i < nbodies * 3; i++) {
         if (d2 < fabs(F1[i] - f0[i])) d2 = fabs(F1[i] - f0[i]);
     }
     d2 = d2 / dt0;
@@ -54,14 +54,14 @@ real initial_time_step(const real* y0, real* dy0, real G, real * masses, real *r
 }
 
 void approx_pos(const real y1[], const real dy1[], const real F1[], real h, real b[][dim], size_t N, real T, real y[]){
-    for (int i = 0; i < 3 * N; i++) {
+    for (size_t i = 0; i < 3 * N; i++) {
         y[i] = y1[i] + T * h * (dy1[i] + T * h * (F1[i] + h * (b[0][i] / 0.3e1 + h * (b[1][i] / 0.6e1 + h * (b[2][i] / 0.10e2 + h * (b[3][i] / 0.15e2 + h * (b[4][i] / 0.21e2 + h * (b[5][i] / 0.28e2 + h * b[6][i] / 0.36e2))))))) / 0.2e1);
     }
     return;
 }
 
 void approx_vel(const real dy1[], const real F1[], real h, real b[][dim], size_t N, real T, real dy[]){
-    for (int i = 0; i < 3 * N; i++) {
+    for (size_t i = 0; i < 3 * N; i++) {
         dy[i] = dy1[i] + T * h * (F1[i] + h * (b[0][i] / 0.2e1 + h * (b[1][i] / 0.3e1 + h * (b[2][i] / 0.4e1 + h * (b[3][i] / 0.5e1 + h * (b[4][i] / 0.6e1 + h * (b[5][i] / 0.7e1 + h * b[6][i] / 0.8e1)))))));
     }
     return;
@@ -79,7 +79,7 @@ void compute_gs(real ddys[][dim], int ih, size_t N, real g[][dim]) {
         const real *F8 = ddys[7];
 
         // # Update g's with accelerations
-        for (int i = 0; i < 3 * N; i++) {
+        for (size_t i = 0; i < 3 * N; i++) {
             if (ih == 1) {
                 g[0][i] = (F2[i] - F1[i]) * rs[1][0];
             } else if (ih == 2) {
@@ -122,29 +122,29 @@ void compute_gs(real ddys[][dim], int ih, size_t N, real g[][dim]) {
 
 void compute_bs_from_gs(real g[][dim], int ih, size_t N, real b[][dim]){
     if (ih == 1) {
-        for (int i = 0; i < 3 * N; i++) {
+        for (size_t i = 0; i < 3 * N; i++) {
             b[0][i] = cs[0][0]*g[0][i] + cs[1][0]*g[1][i] + cs[2][0]*g[2][i] + cs[3][0]*g[3][i] + cs[4][0]*g[4][i] + cs[5][0]*g[5][i] + cs[6][0]*g[6][i];
         }
     } else if (ih == 2) {
-        for (int i = 0; i < 3 * N; i++) {
+        for (size_t i = 0; i < 3 * N; i++) {
             b[0][i] = cs[0][0]*g[0][i] + cs[1][0]*g[1][i] + cs[2][0]*g[2][i] + cs[3][0]*g[3][i] + cs[4][0]*g[4][i] + cs[5][0]*g[5][i] + cs[6][0]*g[6][i];
             b[1][i] =                  + cs[1][1]*g[1][i] + cs[2][1]*g[2][i] + cs[3][1]*g[3][i] + cs[4][1]*g[4][i] + cs[5][1]*g[5][i] + cs[6][1]*g[6][i];
         }
     } else if (ih == 3) {
-        for (int i = 0; i < 3 * N; i++) {
+        for (size_t i = 0; i < 3 * N; i++) {
             b[0][i] = cs[0][0]*g[0][i] + cs[1][0]*g[1][i] + cs[2][0]*g[2][i] + cs[3][0]*g[3][i] + cs[4][0]*g[4][i] + cs[5][0]*g[5][i] + cs[6][0]*g[6][i];
             b[1][i] =                  + cs[1][1]*g[1][i] + cs[2][1]*g[2][i] + cs[3][1]*g[3][i] + cs[4][1]*g[4][i] + cs[5][1]*g[5][i] + cs[6][1]*g[6][i];
             b[2][i] =                                     + cs[2][2]*g[2][i] + cs[3][2]*g[3][i] + cs[4][2]*g[4][i] + cs[5][2]*g[5][i] + cs[6][2]*g[6][i];
         }
     } else if (ih == 4) {
-        for (int i = 0; i < 3 * N; i++) {
+        for (size_t i = 0; i < 3 * N; i++) {
             b[0][i] = cs[0][0]*g[0][i] + cs[1][0]*g[1][i] + cs[2][0]*g[2][i] + cs[3][0]*g[3][i] + cs[4][0]*g[4][i] + cs[5][0]*g[5][i] + cs[6][0]*g[6][i];
             b[1][i] =                  + cs[1][1]*g[1][i] + cs[2][1]*g[2][i] + cs[3][1]*g[3][i] + cs[4][1]*g[4][i] + cs[5][1]*g[5][i] + cs[6][1]*g[6][i];
             b[2][i] =                                     + cs[2][2]*g[2][i] + cs[3][2]*g[3][i] + cs[4][2]*g[4][i] + cs[5][2]*g[5][i] + cs[6][2]*g[6][i];
             b[3][i] =                                                          cs[3][3]*g[3][i] + cs[4][3]*g[4][i] + cs[5][3]*g[5][i] + cs[6][3]*g[6][i];
         }
     } else if (ih == 5) {
-        for (int i = 0; i < 3 * N; i++) {
+        for (size_t i = 0; i < 3 * N; i++) {
             b[0][i] = cs[0][0]*g[0][i] + cs[1][0]*g[1][i] + cs[2][0]*g[2][i] + cs[3][0]*g[3][i] + cs[4][0]*g[4][i] + cs[5][0]*g[5][i] + cs[6][0]*g[6][i];
             b[1][i] =                  + cs[1][1]*g[1][i] + cs[2][1]*g[2][i] + cs[3][1]*g[3][i] + cs[4][1]*g[4][i] + cs[5][1]*g[5][i] + cs[6][1]*g[6][i];
             b[2][i] =                                     + cs[2][2]*g[2][i] + cs[3][2]*g[3][i] + cs[4][2]*g[4][i] + cs[5][2]*g[5][i] + cs[6][2]*g[6][i];
@@ -152,7 +152,7 @@ void compute_bs_from_gs(real g[][dim], int ih, size_t N, real b[][dim]){
             b[4][i] =                                                                             cs[4][4]*g[4][i] + cs[5][4]*g[5][i] + cs[6][4]*g[6][i];
         }
     } else if (ih == 6) {
-        for (int i = 0; i < 3 * N; i++) {
+        for (size_t i = 0; i < 3 * N; i++) {
             b[0][i] = cs[0][0]*g[0][i] + cs[1][0]*g[1][i] + cs[2][0]*g[2][i] + cs[3][0]*g[3][i] + cs[4][0]*g[4][i] + cs[5][0]*g[5][i] + cs[6][0]*g[6][i];
             b[1][i] =                  + cs[1][1]*g[1][i] + cs[2][1]*g[2][i] + cs[3][1]*g[3][i] + cs[4][1]*g[4][i] + cs[5][1]*g[5][i] + cs[6][1]*g[6][i];
             b[2][i] =                                     + cs[2][2]*g[2][i] + cs[3][2]*g[3][i] + cs[4][2]*g[4][i] + cs[5][2]*g[5][i] + cs[6][2]*g[6][i];
@@ -161,7 +161,7 @@ void compute_bs_from_gs(real g[][dim], int ih, size_t N, real b[][dim]){
             b[5][i] =                                                                                                cs[5][5]*g[5][i] + cs[6][5]*g[6][i];
         }
     } else if (ih == 7) {
-        for (int i = 0; i < 3 * N; i++) {
+        for (size_t i = 0; i < 3 * N; i++) {
             b[0][i] = cs[0][0]*g[0][i] + cs[1][0]*g[1][i] + cs[2][0]*g[2][i] + cs[3][0]*g[3][i] + cs[4][0]*g[4][i] + cs[5][0]*g[5][i] + cs[6][0]*g[6][i];
             b[1][i] =                  + cs[1][1]*g[1][i] + cs[2][1]*g[2][i] + cs[3][1]*g[3][i] + cs[4][1]*g[4][i] + cs[5][1]*g[5][i] + cs[6][1]*g[6][i];
             b[2][i] =                                     + cs[2][2]*g[2][i] + cs[3][2]*g[3][i] + cs[4][2]*g[4][i] + cs[5][2]*g[5][i] + cs[6][2]*g[6][i];
@@ -179,14 +179,14 @@ void refine_bs(real b[][dim], real q, real E[][dim], size_t N){
     real bd[nh - 1][3 * N];
     static int inited = 0;
     if (inited != 0){
-        for (int i = 0; i < 3 * N; i++) {
-            for (int j = 0; j < 7; j++) {
+        for (size_t i = 0; i < 3 * N; i++) {
+            for (size_t j = 0; j < 7; j++) {
                 bd[j][i] = b[j][i] - E[j][i];
             }
         }
     } else {
-        for (int i = 0; i < 3 * N; i++) {
-            for (int j = 0; j < 7; j++) {
+        for (size_t i = 0; i < 3 * N; i++) {
+            for (size_t j = 0; j < 7; j++) {
                 bd[j][i] = 0.0;
             }
         }
@@ -199,7 +199,7 @@ void refine_bs(real b[][dim], real q, real E[][dim], size_t N){
     real q6 = q3 * q3;
     real q7 = q2 * q5;
 
-    for (int i = 0; i < 3 * N; i++) {
+    for (size_t i = 0; i < 3 * N; i++) {
         E[0][i] = q * (b[6][i] * 7.0 + b[5][i] * 6.0 + b[4][i] * 5.0 + b[3][i] * 4.0 + b[2][i] * 3.0 + b[1][i] * 2.0 + b[0][i]);
         E[1][i] = q2 * (b[6][i] * 21.0 + b[5][i] * 15.0 + b[4][i] * 10.0 + b[3][i] * 6.0 + b[2][i] * 3.0 + b[1][i]);
         E[2][i] = q3 * (b[6][i] * 35.0 + b[5][i] * 20.0 + b[4][i] * 10.0 + b[3][i] * 4.0 + b[2][i]);
@@ -209,8 +209,8 @@ void refine_bs(real b[][dim], real q, real E[][dim], size_t N){
         E[6][i] = q7 * b[6][i];
     }
 
-    for (int i = 0; i < 3 * N; i++) {
-        for (int j = 0; j < 7; j++) {
+    for (size_t i = 0; i < 3 * N; i++) {
+        for (size_t j = 0; j < 7; j++) {
             b[j][i] = E[j][i] + bd[j][i];
         }
     }
@@ -251,18 +251,18 @@ size_t integrator_gauss_radau15(real *pos, real *vel, real *m_vec, real *r_vec, 
     for (size_t i = 0; i < N; i++) masses[i] = m_vec[i];
 
     // # Initialize
-    for (int j = 0; j < nh - 1; j++) {
-        for (int i = 0; i < dim; i++) {
+    for (size_t j = 0; j < nh - 1; j++) {
+        for (size_t i = 0; i < dim; i++) {
             bs0[j][i] = 0.0;
             bs[j][i] = 0.0;
             g[j][i] = 0.0;
             E[j][i] = 0.0;
         }
     }
-    for (int j = 0; j < nh; j++) {
-        for (int i = 0; i < dim; i++) ddys[j][i] = 0.0;
+    for (size_t j = 0; j < nh; j++) {
+        for (size_t i = 0; i < dim; i++) ddys[j][i] = 0.0;
     }
-    for (int i = 0; i < dim; i++) {
+    for (size_t i = 0; i < dim; i++) {
         db6[i] = 0.0;
         ddy[i] = 0.0;
     }
@@ -278,14 +278,14 @@ size_t integrator_gauss_radau15(real *pos, real *vel, real *m_vec, real *r_vec, 
     int warning_msg_printed = 0;
     while(advance_step){
         // # Variable number of iterations in PC
-        for (int ipc = 0; ipc < 12; ipc++) {
-            for (int j = 0; j < nh; j++) {
-                for (int i = 0; i < 3 * N; i++) {
+        for (size_t ipc = 0; ipc < 12; ipc++) {
+            for (size_t j = 0; j < nh; j++) {
+                for (size_t i = 0; i < 3 * N; i++) {
                     ddys[j][i] = 0;
                 }
             }
             // # Advance along the Radau sequence
-            for (int ih = 0; ih < nh; ih++) {
+            for (size_t ih = 0; ih < nh; ih++) {
                 // # Estimate position and velocity with bs0 and current h
                 approx_pos(y0, dy0, ddy0, hs[ih], bs, N, h, y);
                 approx_vel(dy0, ddy0, hs[ih], bs, N, h, dy);
@@ -295,11 +295,11 @@ size_t integrator_gauss_radau15(real *pos, real *vel, real *m_vec, real *r_vec, 
                 compute_bs_from_gs(g, ih, N, bs);
             }
 
-            for (int i = 0; i < dim; i++) db6[i] = bs[nh - 2][i] - bs0[nh - 2][i];
+            for (size_t i = 0; i < dim; i++) db6[i] = bs[nh - 2][i] - bs0[nh - 2][i];
 
             if (vector_max_abs(db6, dim) / vector_max_abs(ddys[nh - 1], dim) < tolpc) break;
-            for (int j = 0; j < nh - 1; j++) {
-                for (int i = 0; i < dim; i++) bs0[j][i] = bs[j][i];
+            for (size_t j = 0; j < nh - 1; j++) {
+                for (size_t i = 0; i < dim; i++) bs0[j][i] = bs[j][i];
             }
             // if (integrator_flag > 0) break;
         }
@@ -329,13 +329,13 @@ size_t integrator_gauss_radau15(real *pos, real *vel, real *m_vec, real *r_vec, 
                 advance_step = 0;
             }
             // # Update step
-            for (int i = 0; i < dim; i++) {
+            for (size_t i = 0; i < dim; i++) {
                 y0[i] = y[i];
                 dy0[i] = dy[i];
                 ddy0[i] = ddy[i];
             }
-            for (int j = 0; j < nh - 1; j++) {
-                for (int i = 0; i < dim; i++) bs0[j][i] = bs[j][i];
+            for (size_t j = 0; j < nh - 1; j++) {
+                for (size_t i = 0; i < dim; i++) bs0[j][i] = bs[j][i];
             }
 
             refine_bs(bs, dtreq / h, E, N);

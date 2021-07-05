@@ -49,13 +49,16 @@ size_t EXIT_MAX_N_COLLISIONS_EXCEEDED;
 size_t EXIT_NORMAL;
 size_t ENABLE_EXT_ACC; // enable the externally calculated accelerations
 
+// GPU device ID (-1 == no gpu)
+int devID;
+
 // buffer for storing close encounter events and collision events
 // format: [time1, id1_event1, id2_event1, distance_event1, time2, id1_event2, id2_event2, distance_event2, ...]
 real *buf_ce_events;
 real *buf_collision_events;
 
 // Getters/Setters
-void set_state(double *pos_vec, double *vel_vec, double *m_vec, double *r_vec, int N, double G, double C);
+void set_state(double *pos_vec, double *vel_vec, double *m_vec, double *r_vec, size_t N, double G, double C);
 int get_state(double *pos_vec, double *vel_vec, double *m_vec, double *r_vec);
 double get_model_time();
 void set_close_encounter_distance(double d);
@@ -64,7 +67,7 @@ void set_close_encounter_buffer(double *buf_ce, int max_n_ce);
 void set_collision_buffer(double *buf_collision, int max_n_collision);
 
 // set the addtional forces calculated by external routines (e.g., in the python interface)
-size_t set_additional_forces(int N, double ext_acc[]);
+size_t set_additional_forces(size_t N, double ext_acc[]);
 
 // Utility functions
 size_t ode_n_body_first_order(real *pos, size_t N, real G, const real *masses, real *dxdt);
@@ -95,7 +98,7 @@ void reset_close_encounter_buffer(); // should be called after the python interf
 void reset_collision_buffer(); // should be called after the python interface finishes handling a collision exception
 
 // Integrator functions
-int initialize_code(double _G, double _C, int _N_MAX, int _MAX_N_CE, int _MAX_N_COLLISIONS);
+int initialize_code(double _G, double _C, size_t _N_MAX, size_t _MAX_N_CE, size_t _MAX_N_COLLISIONS);
 int finalize_code();
 
 size_t integrator_gauss_radau15(real *pos, real *vel, real *m_vec, real *r_vec, size_t N, real _G, real _t, real _t_end, real _dt);

@@ -10,6 +10,8 @@ extern "C" {
 
 }
 
+#include "helper_cuda.h"
+
 #define BLOCK_SIZE 256
 #define SOFTENING 0.0f
 double4 *pos_dev;
@@ -53,14 +55,23 @@ extern "C" {
 
     void gpu_init(int N) {
         if (inited) return;
-        int bytes = N * sizeof(double4);
-        int err = 0;
-        err = cudaMalloc(&pos_dev, bytes);
-        if (err > 0) {printf("cudaMalloc err = %d\n", err); exit(0); }
-        err = cudaMalloc(&acc_dev, N * sizeof(double3));
-        if (err > 0) {printf("cudaMalloc err = %d\n", err); exit(0); }
-        inited = 1;
-        printf("GPU force opened.\n");
+        int device_count = 0;
+        cudaGetDeviceCount(&device_count);
+        if (device_count == 0) {
+            printf("No CUDA device found. Disable GPU acceleration...\n");
+            devID = -1;
+        } else {
+            devID = gpuDeviceInit(0);
+            printf("Device ID = %d, total number of GPU devices: %d\n", devID, device_count);
+            int bytes = N * sizeof(double4);
+            int err = 0;
+            err = cudaMalloc(&pos_dev, bytes);
+            if (err > 0) {printf("cudaMalloc err = %d\n", err); exit(0); }
+            err = cudaMalloc(&acc_dev, N * sizeof(double3));
+            if (err > 0) {printf("cudaMalloc err = %d\n", err); exit(0); }
+            inited = 1;
+            printf("GPU force opened.\n");
+        }
     }
 
     void gpu_finalize() {
