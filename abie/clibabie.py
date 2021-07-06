@@ -35,6 +35,7 @@ class CLibABIE(object):
         MAX_CE_EVENTS=1,
         MAX_COLLISION_EVENTS=1,
         close_encounter_distance=0,
+        deviceID=-1,
     ):
         self.lib.initialize_code(
             ctypes.c_double(G),
@@ -42,6 +43,7 @@ class CLibABIE(object):
             ctypes.c_int(N_MAX),
             ctypes.c_int(MAX_CE_EVENTS),
             ctypes.c_int(MAX_COLLISION_EVENTS),
+            ctypes.c_int(deviceID),
         )
         self.lib.set_close_encounter_distance(ctypes.c_double(close_encounter_distance))
         self.max_close_encounter_events = MAX_CE_EVENTS

@@ -24,7 +24,7 @@ __user_shell_dir__ = os.getcwd()
 
 class Integrator(object):
     def __init__(
-        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0, buf_len=10240
+        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0, buf_len=10240, deviceID=-1
     ):
         """
         The constructor of an abstract integrator
@@ -54,6 +54,8 @@ class Integrator(object):
         self.__buf = buffer
         self.buffer_len = buf_len
         self.__initialized = False
+        self.__device_id = deviceID
+        print('DevID', deviceID)
 
 
         # =============== C Library =============
@@ -120,6 +122,7 @@ class Integrator(object):
                 MAX_CE_EVENTS=self.max_close_encounter_events,
                 MAX_COLLISION_EVENTS=self.max_collision_events,
                 close_encounter_distance=self.close_encounter_distance,
+                deviceID=self.__device_id
             )
             self.buf.initialize_buffer(self.particles.N)
 

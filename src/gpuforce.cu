@@ -30,7 +30,7 @@ __global__ void gpuforce(double4 *p, double G, int n, double3 *acc) {
     if (i < n) {
         double Fx = 0.0f; double Fy = 0.0f; double Fz = 0.0f;
 
-// #pragma unroll
+#pragma unroll
             for (int j = 0; j < n; j++) {
                 double m = p[j].w;
                 if (i == j || m == 0) continue;
@@ -53,24 +53,34 @@ __global__ void gpuforce(double4 *p, double G, int n, double3 *acc) {
 
 extern "C" {
 
-    void gpu_init(int N) {
+    void gpu_init(int N, int deviceID) {
+        printf("Device id, %d\n", deviceID);
         if (inited) return;
         int device_count = 0;
         cudaGetDeviceCount(&device_count);
         if (device_count == 0) {
             printf("No CUDA device found. Disable GPU acceleration...\n");
             devID = -1;
+        } else if (deviceID < device_count) {
+            if (deviceID >= 0) {
+                devID = gpuDeviceInit(deviceID);
+                printf("Device ID = %d, total number of GPU devices: %d\n", devID, device_count);
+                int bytes = N * sizeof(double4);
+                int err = 0;
+                err = cudaMalloc(&pos_dev, bytes);
+                if (err > 0) {printf("cudaMalloc err = %d\n", err); exit(0); }
+                err = cudaMalloc(&acc_dev, N * sizeof(double3));
+                if (err > 0) {printf("cudaMalloc err = %d\n", err); exit(0); }
+                inited = 1;
+                printf("GPU force opened.\n");
+            } else {
+                // the user chooses to use CPU only because deviceID < 0
+                printf("GPU acceleration disabled by the user (deviceID = %d)", deviceID);
+                devID = deviceID;
+            }
         } else {
-            devID = gpuDeviceInit(0);
-            printf("Device ID = %d, total number of GPU devices: %d\n", devID, device_count);
-            int bytes = N * sizeof(double4);
-            int err = 0;
-            err = cudaMalloc(&pos_dev, bytes);
-            if (err > 0) {printf("cudaMalloc err = %d\n", err); exit(0); }
-            err = cudaMalloc(&acc_dev, N * sizeof(double3));
-            if (err > 0) {printf("cudaMalloc err = %d\n", err); exit(0); }
-            inited = 1;
-            printf("GPU force opened.\n");
+            printf("Invalid CUDA device ID. Number of devices: %d, given device ID: %d. Disable GPU acceleration...\n", device_count, deviceID);
+            devID = -1;
         }
     }
 
@@ -93,11 +103,11 @@ extern "C" {
         }
 
         cudaError_t err;
-        gpu_init(N);
 
 
-        err = cudaMemcpy(pos_dev, pos_host, N*sizeof(double4), cudaMemcpyHostToDevice);
-        if (err > 0) {printf("cudaMemcpy err = %d, host_to_dev\n", err); exit(0); }
+        // err = cudaMemcpy(pos_dev, pos_host, N*sizeof(double4), cudaMemcpyHostToDevice);
+        checkCudaErrors(cudaMemcpy(pos_dev, pos_host, N*sizeof(double4), cudaMemcpyHostToDevice));
+        // if (err > 0) {printf("cudaMemcpy err = %d, host_to_dev\n", err); exit(0); }
 
         int actual_block_size = BLOCK_SIZE;
         int nBlocks = (N + actual_block_size - 1) / actual_block_size;
@@ -113,9 +123,7 @@ extern "C" {
         if (err != cudaSuccess) {printf("Error: %d %s\n", err, cudaGetErrorString(err)); exit(0);}
 
 
-        // err = cudaMemcpy(acc_host, acc_dev, bytes, cudaMemcpyDeviceToHost);
-        err = cudaMemcpy(acc, acc_dev, N*sizeof(double3), cudaMemcpyDeviceToHost);
-        if (err != cudaSuccess) {printf("cudaMemcpy err = %d, %s\n", err, cudaGetErrorString(err)); exit(0); }
+        checkCudaErrors(cudaMemcpy(acc, acc_dev, N*sizeof(double3), cudaMemcpyDeviceToHost));
         /*
         for (size_t i = 0; i < 3*N; i++) {
             acc[i] = (real) acc_host[i];

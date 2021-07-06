@@ -81,7 +81,7 @@ size_t calculate_post_newtonian(const real pos[], const real vel[], size_t N, re
 
 #ifdef GPU
 size_t ode_n_body_second_order_gpu(const real *vec, size_t N, real G, const real *masses, const real *radii, real *acc);
-void gpu_init(int N);
+void gpu_init(int N, int deviceID);
 void gpu_finalize();
 #endif
 
@@ -98,7 +98,7 @@ void reset_close_encounter_buffer(); // should be called after the python interf
 void reset_collision_buffer(); // should be called after the python interface finishes handling a collision exception
 
 // Integrator functions
-int initialize_code(double _G, double _C, size_t _N_MAX, size_t _MAX_N_CE, size_t _MAX_N_COLLISIONS);
+int initialize_code(double _G, double _C, size_t _N_MAX, size_t _MAX_N_CE, size_t _MAX_N_COLLISIONS, int deviceID);
 int finalize_code();
 
 size_t integrator_gauss_radau15(real *pos, real *vel, real *m_vec, real *r_vec, size_t N, real _G, real _t, real _t_end, real _dt);

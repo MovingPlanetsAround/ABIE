@@ -7,9 +7,13 @@ __integrator__ = "LeapFrog"
 
 class LeapFrog(Integrator):
     def __init__(
-        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0
+        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0, deviceID=-1
     ):
-        super(LeapFrog, self).__init__(particles, buffer, CONST_G, CONST_C)
+        super(LeapFrog, self).__init__(particles=particles, 
+                                       buffer=buffer, 
+                                       CONST_G=CONST_G, 
+                                       CONST_C=CONST_C, 
+                                       deviceID=deviceID)
         self.__initialized = False
 
     def integrate(self, to_time=None):

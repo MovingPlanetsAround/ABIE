@@ -28,6 +28,7 @@ class ABIE(object):
         store_dt=100,
         name="simulation",
         buffer_len=10240,
+        deviceID=-1
     ):
         # =================== CONSTANTS ==================
         # by default, using the square of the Gaussian gravitational constant
@@ -48,7 +49,7 @@ class ABIE(object):
         self.__max_close_encounter_events = 1
         self.__max_collision_events = 1
         self.__close_encounter_distance = 0.0
-        # self.acceleration_method = 'numpy'
+        self.__device_id = deviceID
 
         # load integrator modules
         self.__integrator_modules = (
@@ -242,7 +243,7 @@ class ABIE(object):
             if name_of_integrator not in self.__integrator_instances:
                 self.__integrator = getattr(
                     self.__integrator_modules[name_of_integrator], name_of_integrator
-                )(self.particles, self.buffer, self.CONST_G, self.CONST_C)
+                )(self.particles, self.buffer, self.CONST_G, self.CONST_C, deviceID=self.__device_id)
                 self.__integrator_instances[name_of_integrator] = self.__integrator
             else:
                 self.__integrator = self.__integrator_instances[name_of_integrator]

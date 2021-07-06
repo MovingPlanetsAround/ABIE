@@ -9,9 +9,13 @@ __integrator__ = "WisdomHolman"
 
 class WisdomHolman(Integrator):
     def __init__(
-        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0
+        self, particles=None, buffer=None, CONST_G=4 * np.pi ** 2, CONST_C=0.0, deviceID=-1
     ):
-        super(self.__class__, self).__init__(particles, buffer, CONST_G, CONST_C)
+        super(self.__class__, self).__init__(particles=particles, 
+                                             buffer=buffer, 
+                                             CONST_G=CONST_G, 
+                                             CONST_C=CONST_C, 
+                                             deviceID=deviceID)
 
     def integrator_warmup(self):
         state_vec = np.concatenate(

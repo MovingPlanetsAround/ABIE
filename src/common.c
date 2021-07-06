@@ -80,7 +80,7 @@ size_t ode_n_body_second_order(const real vec[], size_t N, real G, const real ma
 size_t calculate_accelerations(const real pos[], const real vel[], size_t N, real G, const real masses[], const real radii[], real acc[]) {
     // calculate the accelerations due to N bodies
 #ifdef GPU
-    if (N > 256) {
+    if (devID >= 0) {
         // Use GPU to carry out the force calculation when N is large
         ode_n_body_second_order_gpu(pos, N, G, masses, radii, acc);
     } else {
@@ -224,9 +224,9 @@ real cross_norm(const real *vec1, const real *vec2) {
 }
 
 int code_inited = 0;
-int initialize_code(double _G, double _C, size_t _N_MAX, size_t _MAX_N_CE, size_t _MAX_N_COLLISIONS) {
+int initialize_code(double _G, double _C, size_t _N_MAX, size_t _MAX_N_CE, size_t _MAX_N_COLLISIONS, int deviceID) {
     if (code_inited > 0) return 0;
-    printf("Initializing the code...");
+    printf("Initializing the code..., deviceID = %d", deviceID);
     // define constants and flags
     MAX_N_CE = _MAX_N_CE;
     MAX_N_COLLISIONS = _MAX_N_COLLISIONS;
@@ -264,7 +264,7 @@ int initialize_code(double _G, double _C, size_t _N_MAX, size_t _MAX_N_CE, size_
     for (size_t i = 0; i < 4 * MAX_N_COLLISIONS; i++) buf_collision_events[i] = 0.0;
 
 #ifdef GPU
-    gpu_init(_N_MAX);
+    gpu_init(_N_MAX, deviceID);
 #endif
 
 #ifdef SAPPORO
@@ -310,7 +310,7 @@ void reset_collision_buffer() {
 
 void set_state(double *pos_vec, double *vel_vec, double *m_vec, double *r_vec, size_t N, double G, double C){
     // initialize if the global arrays are not allocated
-    initialize_code(G, C, N, MAX_N_CE, MAX_N_COLLISIONS);
+    // initialize_code(G, C, N, MAX_N_CE, MAX_N_COLLISIONS);
 
     // copy the data from python to the global array with type casting
     for (size_t i = 0; i < 3 * N; i++) {
