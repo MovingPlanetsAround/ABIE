@@ -55,7 +55,6 @@ class Integrator(object):
         self.buffer_len = buf_len
         self.__initialized = False
         self.__device_id = deviceID
-        print('DevID', deviceID)
 
 
         # =============== C Library =============

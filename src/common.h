@@ -1,61 +1,74 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+
+// common constants shared by instances 
+#define EXIT_MAX_N_CE_EXCEEDED 0x01
+#define EXIT_MAX_N_COLLISIONS_EXCEEDED 0x02
+#define EXIT_NORMAL 0x00
+
 #include <stdio.h>
 #include <stdlib.h>
-// #include <math.h>
 #include <tgmath.h>
 #include <float.h>
 
 #ifndef real
     #ifdef LONGDOUBLE
         #define real long double
-    #else
+    #elif FLOAT
+        #define real float
+    #else 
         #define real double
     #endif
 #endif
 
-// Common variables
-real *pos_global;  // the position state vector specified by the users
-real *vel_global;  // the velocity state vector specified by the users
-real *m_vec_global; // masses specified by the users
-real *r_vec_global; // radii specified by the users
+// Data structure for a simulation instance
+struct Simulation {
+    // Common variables
+    real *pos_global;  // the position state vector specified by the users
+    real *vel_global;  // the velocity state vector specified by the users
+    real *m_vec_global; // masses specified by the users
+    real *r_vec_global; // radii specified by the users
 
-real *ext_acc_global; // externally calculated acceleration terms for each body
-// extern real *y00;  // the position state vector used internally by the integrator
-// extern real *dy0;  // the velocity state vector used internally by the integrator
-// extern real *masses; // masses used internally by the integrator
+    real *ext_acc_global; // externally calculated acceleration terms for each body
+    // extern real *y00;  // the position state vector used internally by the integrator
+    // extern real *dy0;  // the velocity state vector used internally by the integrator
+    // extern real *masses; // masses used internally by the integrator
 
-size_t N_global; // number of particles
-// extern size_t dim; // usually 3 * N
-// extern size_t N_active; // number of massive particles
-real G_global; // gravitational constant
-real C_global; // speed of light constant (for PN calculations)
-// extern real *eps; // per-particle softening parameter
-// extern real h; // the internal time step used by the integrator
-// extern real h_min; // minimum time step
-real t_global;
-// extern real t_end;
-extern double dt; // the time step specified by the user
-real close_encounter_distance;  // if 0, ignore close encounters
-size_t n_close_encounters; // number of close encounters
-size_t n_collisions; // number of collision events
+    size_t N_global; // number of particles
+    // extern size_t dim; // usually 3 * N
+    // extern size_t N_active; // number of massive particles
+    real G_global; // gravitational constant
+    real C_global; // speed of light constant (for PN calculations)
+    // extern real *eps; // per-particle softening parameter
+    // extern real h; // the internal time step used by the integrator
+    // extern real h_min; // minimum time step
+    real t_global;
+    // extern real t_end;
+    real dt; // the time step specified by the user
+    real close_encounter_distance;  // if 0, ignore close encounters
+    size_t n_close_encounters; // number of close encounters
+    size_t n_collisions; // number of collision events
 
-// constants and flags
-size_t MAX_N_CE; // number of close encounters before it stops integrating (will lead the Python framework to generate an exception)
-size_t MAX_N_COLLISIONS; // number of close encounters before it stops integrating (will lead the Python framework to generate an exception)
-size_t EXIT_MAX_N_CE_EXCEEDED;
-size_t EXIT_MAX_N_COLLISIONS_EXCEEDED;
-size_t EXIT_NORMAL;
-size_t ENABLE_EXT_ACC; // enable the externally calculated accelerations
+    // constants and flags
+    size_t MAX_N_CE; // number of close encounters before it stops integrating (will lead the Python framework to generate an exception)
+    size_t MAX_N_COLLISIONS; // number of close encounters before it stops integrating (will lead the Python framework to generate an exception)
+    size_t ENABLE_EXT_ACC; // enable the externally calculated accelerations
 
-// GPU device ID (-1 == no gpu)
-int devID;
+    // GPU device ID (-1 == no gpu)
+    int devID;
 
-// buffer for storing close encounter events and collision events
-// format: [time1, id1_event1, id2_event1, distance_event1, time2, id1_event2, id2_event2, distance_event2, ...]
-real *buf_ce_events;
-real *buf_collision_events;
+    // buffer for storing close encounter events and collision events
+    // format: [time1, id1_event1, id2_event1, distance_event1, time2, id1_event2, id2_event2, distance_event2, ...]
+    real *buf_ce_events;
+    real *buf_collision_events;
+};
+
+typedef struct Simulation Simulation;
+
+// Allocate memory for an activate simulation instance
+Simulation sim;
+
 
 // Getters/Setters
 void set_state(double *pos_vec, double *vel_vec, double *m_vec, double *r_vec, size_t N, double G, double C);

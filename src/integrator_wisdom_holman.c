@@ -516,7 +516,7 @@ void integrator_wisdom_holman(real *pos, real *vel, real *m_vec, real *r_vec, si
 
         // Advance time:
         _t += _dt;
-        t_global = _t;
+        sim.t_global = _t;
     }
     return;
 }

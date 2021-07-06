@@ -319,7 +319,7 @@ size_t integrator_gauss_radau15(real *pos, real *vel, real *m_vec, real *r_vec, 
         // # Accept the step
         if (err <= 1 || step_loop_count > step_loop_max) {
             t += h;
-            t_global = t;
+            sim.t_global = t;
             step_loop_count = 0;
             // param[0] = t;
             // param[1] = h;
