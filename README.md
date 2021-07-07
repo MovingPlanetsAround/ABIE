@@ -35,7 +35,7 @@ import abie
 import numpy as np
 
 # create an ABIE instance (Units: MSun, au, yr)
-sim = abie.ABIE(CONST_G=4*np.pi**2, name="example_simulation")
+sim = abie.ABIE(CONST_G=4*np.pi**2, name="example_simulation", device=-1)
 
 # select the integrator
 sim.integrator = "WisdomHolman" 
@@ -57,6 +57,8 @@ sim.stop()
 ```
 
 In the example above, a simple planetary system is setup, such that a solar-type star named "Sun" is orbited by an Earth-mass planet at a=1 au. A particle can either be added using Cartesian coordinates or orbital elements. The Sun is sitting at the center of the reference frame with zero initial velocity. When the simulation is done, you will find a HDF5 file named `example_simulation.h5` containing all the simulation data. 
+
+The argument `device=-1` in the `abie.ABIE()` constructor tells the code to use CPU to carry out the simulation. In the scenario where the number of particles is high, GPU acceleration can be enabled with a non-negative device ID. For example, if the user wishes to use the first GPU, then `device=0`, and the second GPU (if exists) can be chosen with `device=1`, and so on.
 
 
 ### Setup a hierarchical system
@@ -186,9 +188,11 @@ LONGDOUBLE = 1
 And run `make clean; make` again. This  will causes the integrator to use the [`long double`](https://en.wikipedia.org/wiki/Long_double) data type. When using the Gauss-Radau15 integrator, the energy conservation can be better than 10^{-16} in this case (shown as `dE/E = 0` in the terminal), even after evolving the system through multiple Kozai cycles. This, however, will takes about 2x time to finish evolving the same system.
 
 
-### Accelerate ABIE using CUDA/GPU
+### CUDA Support in the ABIE C Library
 
-When `ABIE` is being installed, the `setup.py` script will automatically determine whether your machine has CUDA GPUs or not. If GPUs are presented in the machine, it will automatically turn on the relevant compilation flags. This could also be done manually if you wish to use `ABIE` as a C library instead. For large `N` systems (N>512), using the GPU could result in substential speed up. To enable the GPU support, modify the `src/Makefile` from
+When `ABIE` is being installed as a Python package, the `setup.py` script will automatically determine whether your machine has CUDA GPUs or not. If GPUs are presented in the machine, it will automatically turn on the relevant compilation flags to compile the ABIE C library. 
+
+If you would like to directly use `ABIE` as a C library instead, please edit the `src/Makefile`:
 
 ```Makefile
 GPU = 0
@@ -200,7 +204,7 @@ to
 GPU = 1
 ```
 
-And then recompile the code. Note that it is not recommended to use GPU for small-N systems. Using GPU on small-N system is actually slower than using the CPU.
+And then recompile the code. Note that it is not recommended to use GPU for small-N systems. 
 
   
 
