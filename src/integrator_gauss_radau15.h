@@ -14,7 +14,7 @@
 // size_t N_active; // number of massive particles
 // real G; // gravitational constant
 // real *eps; // per-particle softening parameter
-real h_min = 1.e-13; // minimum time step
+real h_min = 1.e-12; // minimum time step
 // real t;
 // real t_end;
 double dt; // the time step specified by the user

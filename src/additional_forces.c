@@ -8,6 +8,12 @@ size_t calculate_additional_forces(const real pos[], const real vel[], size_t N,
     if (C > 0.0) {
         calculate_post_newtonian(pos, vel, N, G, C, masses, radii, acc);
     }
+
+    int calc_j_terms = 0; // TODO: move out the hard-coded config here
+
+    if (calc_j_terms) {
+        calculate_j_terms(pos, vel, N, G, C, masses, radii, acc);
+    }
     return EXIT_NORMAL;
 }
 
@@ -116,6 +122,70 @@ size_t calculate_post_newtonian(const real pos[], const real vel[], size_t N, re
         acc[j * 3] += ax;
         acc[j * 3 + 1] += ay;
         acc[j * 3 + 2] += az;
+    }
+    return EXIT_NORMAL;
+}
+
+
+void __calculate_grad_i_shat(const real pos[], const real radii[], int i, real3 grad_u_i_shat) {
+    const real J2 = 1.0;
+    const real J3 = 1.0;
+    const real J4 = 1.0;
+    const real J6 = 1.0;
+
+    real x_i = pos[i * 3]; // x component
+    real y_i = pos[i * 3 + 1]; // y component
+    real z_i = pos[i * 3 + 2]; // z component
+    real r_i = sqrt(x_i * x_i + y_i * y_i + z_i * z_i); // distance to the origin
+    real R_i = radii[i];  // radius of the i-th body
+
+    real grad_x_u_i_shat_j2 = - R_i * R_i * J2 * (3.0 / 2.0) * (x_i / pow(r_i, 5) - 5 * x_i * pow(z_i, 2) / pow(r_i, 7));
+    real grad_y_u_i_shat_j2 = - R_i * R_i * J2 * (3.0 / 2.0) * (y_i / pow(r_i, 5) - 5 * y_i * pow(z_i, 2) / pow(r_i, 7));
+    real grad_z_u_i_shat_j2 = - R_i * R_i * J2 * (3.0 / 2.0) * (z_i / pow(r_i, 5) - 5 * z_i * pow(z_i, 2) / pow(r_i, 7));
+    
+    
+    real grad_x_u_i_shat_j3 = - pow(R_i, 3) * J3 * (5.0 / 2.0) * (3 * x_i * z_i/ pow(r_i, 7) - 7 * x_i * pow(z_i, 3) / pow(r_i, 9));
+    real grad_y_u_i_shat_j3 = - pow(R_i, 3) * J3 * (5.0 / 2.0) * (3 * y_i * z_i/ pow(r_i, 7) - 7 * y_i * pow(z_i, 3) / pow(r_i, 9));
+    real grad_z_u_i_shat_j3 = - pow(R_i, 3) * J3 * (5.0 / 2.0) * ((3 * z_i * z_i/ pow(r_i, 7) - 7 * z_i * pow(z_i, 3) / pow(r_i, 9)) - (3.0 / 2.0) * (1.0 / pow(r_i, 5) - 5 * pow(z_i, 2) / pow(r_i, 7)));
+
+    real grad_x_u_i_shat_j4 = - pow(R_i, 4) * J4 * (-(315.0 / 8.0) * (x_i * pow(z_i, 4) / pow(r_i, 11)) + (105.0 / 4.0) * ((x_i * pow(z_i, 2)) / (4 * pow(r_i, 9))) - (15.0 / 8.0) * (x_i / pow(r_i, 7)));
+    real grad_y_u_i_shat_j4 = - pow(R_i, 4) * J4 * (-(315.0 / 8.0) * (y_i * pow(z_i, 4) / pow(r_i, 11)) + (105.0 / 4.0) * ((y_i * pow(z_i, 2)) / (4 * pow(r_i, 9))) - (15.0 / 8.0) * (y_i / pow(r_i, 7)));
+    real grad_z_u_i_shat_j4 = - pow(R_i, 4) * J4 * ((35.0 / 8.0) * ((4 * pow(z_i, 3) / pow(r_i, 9)) - 9 * pow(z_i, 5) / pow(r_i, 11)) - (15.0 / 4.0) * ((2 * z_i / pow(r_i, 7)) - (7 * pow(z_i, 3) / pow(r_i, 9))) - (15.0 / 8.0) * (z_i / pow(r_i, 7)));
+
+    real grad_x_u_i_shat_j6 = - pow(R_i, 6) * J6 * (-(3003.0 / 16) * (x_i * pow(z_i, 6) / pow(r_i, 15)) + (3465.0 / 16.0) * (x_i * pow(z_i, 4) / pow(r_i, 13)) - (945.0 / 16.0) * (x_i * pow(z_i, 2) / pow(r_i, 11)) + (35.0 / 16.0) * (x_i / pow(r_i,9)));
+    real grad_y_u_i_shat_j6 = - pow(R_i, 6) * J6 * (-(3003.0 / 16) * (y_i * pow(z_i, 6) / pow(r_i, 15)) + (3465.0 / 16.0) * (y_i * pow(z_i, 4) / pow(r_i, 13)) - (945.0 / 16.0) * (y_i * pow(z_i, 2) / pow(r_i, 11)) + (35.0 / 16.0) * (y_i / pow(r_i,9)));
+    real grad_z_u_i_shat_j6 = - pow(R_i, 6) * J6 * ((231.0 / 16.0) * (6 * pow(z_i, 5) / pow(r_i, 13) - 13 * pow(z_i, 7) / pow(r_i, 15)) - (315.0 / 16.0) * (4 * pow(z_i, 3) / pow(r_i, 11) - 11 * pow(z_i, 5) / pow(r_i, 13)) + (105.0 / 16.0) * (2 * z_i / pow(r_i, 9) - 9 * pow(z_i ,3) / pow(r_i, 11)) + (35.0 / 16.0) * (z_i / pow(r_i, 9)));
+
+    grad_u_i_shat.x = grad_x_u_i_shat_j2 + grad_x_u_i_shat_j3 + grad_x_u_i_shat_j4 + grad_x_u_i_shat_j6;
+    grad_u_i_shat.y = grad_y_u_i_shat_j2 + grad_y_u_i_shat_j3 + grad_y_u_i_shat_j4 + grad_y_u_i_shat_j6;
+    grad_u_i_shat.z = grad_z_u_i_shat_j2 + grad_z_u_i_shat_j3 + grad_z_u_i_shat_j4 + grad_z_u_i_shat_j6;
+}
+
+size_t calculate_j_terms(const real pos[], const real vel[], size_t N, real G, real C, const real masses[], const real radii[], real acc[]) {
+    // This function assumes that the 0-th particle is the star, and the 1-th particle is the planet.
+    // It calculates the J-terms acting on the satellites of the planets, which starts from i = 2;
+    real m_planet = masses[1];
+    for (size_t i = 2; i < N; i++) {
+        real3 acc_j_terms = {0.0, 0.0, 0.0};
+        real3 grad_u_i = {0.0, 0.0, 0.0};
+
+        __calculate_grad_i_shat(pos, radii, i, grad_u_i);
+        acc_j_terms.x += (G * (m_planet + masses[i]) * grad_u_i.x);
+        acc_j_terms.y += (G * (m_planet + masses[i]) * grad_u_i.y);
+        acc_j_terms.z += (G * (m_planet + masses[i]) * grad_u_i.z);
+
+        for (size_t j = 2; j < N; j++) {
+            real3 grad_u_j = {0.0, 0.0, 0.0};
+            __calculate_grad_i_shat(pos, radii, j, grad_u_j);
+            acc_j_terms.x += (G * masses[j] * grad_u_j.x);
+            acc_j_terms.y += (G * masses[j] * grad_u_j.y);
+            acc_j_terms.z += (G * masses[j] * grad_u_j.z);
+        }
+
+        // return the results by adding up the accelerations due to the J terms
+        acc[i * 3] += acc_j_terms.x;
+        acc[i * 3 + 1] += acc_j_terms.y;
+        acc[i * 3 + 2] += acc_j_terms.z;
     }
     return EXIT_NORMAL;
 }

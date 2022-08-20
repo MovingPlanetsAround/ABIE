@@ -2,7 +2,7 @@
 LONGDOUBLE = 0
 
 # Use CUDA/GPU to perform the calculation of acceleratoins
-GPU = 1
+GPU = 0
 
 # CUDA installation path
 CUDA_SDK_PATH=/usr/local/cuda

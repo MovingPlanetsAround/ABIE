@@ -66,6 +66,54 @@ struct Simulation {
 
 typedef struct Simulation Simulation;
 
+struct real3 {
+    real x;
+    real y;
+    real z;
+};
+typedef struct real3 real3;
+
+struct real4 {
+    real x;
+    real y;
+    real z;
+    real m;
+};
+typedef struct real4 real4;
+
+struct real6 {
+    real x;
+    real y;
+    real z;
+    real vx;
+    real vy;
+    real vz;
+};
+typedef struct real6 real6;
+
+struct real7 {
+    real x;
+    real y;
+    real z;
+    real vx;
+    real vy; 
+    real vz;
+    real m;
+};
+typedef struct real7 real7;
+
+struct real8 {
+    real x;
+    real y;
+    real z;
+    real vx;
+    real vy; 
+    real vz;
+    real m;
+    real r;
+};
+typedef struct real8 real8;
+
 // Allocate memory for an activate simulation instance
 Simulation sim;
 
@@ -91,6 +139,7 @@ size_t calculate_accelerations(const real pos[], const real vel[], size_t N, rea
 // Additonal forces
 size_t calculate_additional_forces(const real pos[], const real vel[], size_t N, real G, real C, const real masses[], const real radii[], real acc[]);
 size_t calculate_post_newtonian(const real pos[], const real vel[], size_t N, real G, real C, const real masses[], const real radii[], real acc[]);
+size_t calculate_j_terms(const real pos[], const real vel[], size_t N, real G, real C, const real masses[], const real radii[], real acc[]);
 
 #ifdef GPU
 size_t ode_n_body_second_order_gpu(const real *vec, size_t N, real G, const real *masses, const real *radii, real *acc);
