@@ -9,7 +9,7 @@ size_t calculate_additional_forces(const real pos[], const real vel[], size_t N,
         calculate_post_newtonian(pos, vel, N, G, C, masses, radii, acc);
     }
 
-    int calc_j_terms = 0; // TODO: move out the hard-coded config here
+    int calc_j_terms = 1; // TODO: move out the hard-coded config here
 
     if (calc_j_terms) {
         calculate_j_terms(pos, vel, N, G, C, masses, radii, acc);
@@ -128,10 +128,12 @@ size_t calculate_post_newtonian(const real pos[], const real vel[], size_t N, re
 
 
 void __calculate_grad_i_shat(const real pos[], const real radii[], int i, real3 grad_u_i_shat) {
-    const real J2 = 1.0;
-    const real J3 = 1.0;
-    const real J4 = 1.0;
-    const real J6 = 1.0;
+    // Values for Saturn, according to Gomes-Júnior et al. 2021
+    // When working on other planets, these values should be changed accordingly 
+    const real J2 = 1.629133249525738e-02;
+    const real J3 = 1.494723182852077e-06;
+    const real J4 = -9.307138534779719e-04;
+    const real J6 = 8.943208329411604E-05;
 
     real x_i = pos[i * 3]; // x component
     real y_i = pos[i * 3 + 1]; // y component
@@ -166,9 +168,8 @@ size_t calculate_j_terms(const real pos[], const real vel[], size_t N, real G, r
     // It calculates the J-terms acting on the satellites of the planets, which starts from i = 2;
     real m_planet = masses[1];
     for (size_t i = 2; i < N; i++) {
-        real3 acc_j_terms = {0.0, 0.0, 0.0};
-        real3 grad_u_i = {0.0, 0.0, 0.0};
-
+        real3 acc_j_terms = {0.0f, 0.0f, 0.0f};
+        real3 grad_u_i = {0.0f, 0.0f, 0.0f};
         __calculate_grad_i_shat(pos, radii, i, grad_u_i);
         acc_j_terms.x += (G * (m_planet + masses[i]) * grad_u_i.x);
         acc_j_terms.y += (G * (m_planet + masses[i]) * grad_u_i.y);
