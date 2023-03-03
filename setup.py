@@ -15,6 +15,14 @@ def locate_cuda():
     if "CUDAHOME" in os.environ:
         home = os.environ["CUDAHOME"]
         nvcc = os.path.join(home, "bin", "nvcc")
+        cudaconfig = {
+            "home": home,
+            "nvcc": nvcc,
+            "include": os.path.join(home, "include"),
+            "lib64": os.path.join(home, "lib64"),
+        }
+        print("Found CUDA with the following config: ", cudaconfig)
+        return cudaconfig
     else:
         for directory in os.environ["PATH"].split(os.pathsep):
             nvcc = os.path.join(directory, "nvcc")
@@ -30,6 +38,7 @@ def locate_cuda():
                         "include": os.path.join(home, "include"),
                         "lib64": os.path.join(home, "lib64"),
                     }
+                    print("Found CUDA with the following config: ", cudaconfig)
                     return cudaconfig
         return None
 
@@ -115,7 +124,11 @@ sources = [
 ]
 
 # Locate CUDA paths
-CUDA = locate_cuda()
+opt_cuda = os.getenv("WITH_CUDA")
+if opt_cuda is None or opt_cuda == str(1):
+    CUDA = locate_cuda()
+else:
+    CUDA = None
 
 gcc_compile_flags = [
     "-fstrict-aliasing",
@@ -157,7 +170,7 @@ module_abie = Extension(
 
 setup(
     name="abie",
-    version="0.8.0",
+    version="0.8.5",
     description="Alice-Bob Integrator Environment (ABIE), a GPU-accelerated integrator framework for astrophysical N-body simulations",
     url="https://github.com/MovingPlanetsAround/ABIE",
     author="Maxwell X. Cai, Javier Roa, Adrian S. Hamers, Nathan W. C. Leigh",
