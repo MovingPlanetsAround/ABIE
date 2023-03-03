@@ -44,7 +44,7 @@ if len(h5fns) > 0:
             output_file_name, "w"
         ) as h5f_out:
             step_id_list = []
-            step_len_vec = np.zeros(len(h5f), dtype=np.int)
+            step_len_vec = np.zeros(len(h5f), dtype=int)
             if len(h5f["/Step#0/hash"]) > 0:
                 vec_hash = h5f["/Step#0/hash"].value[
                     0
@@ -127,7 +127,7 @@ if len(h5fns) > 0:
                 for dset_name in dset_dict.keys():
                     if dset_name == "hash":
                         h5f_out.create_dataset(
-                            dset_name, data=dset_dict[dset_name], dtype=np.int64
+                            dset_name, data=dset_dict[dset_name], dtype=int
                         )
                     else:
                         h5f_out.create_dataset(dset_name, data=dset_dict[dset_name])

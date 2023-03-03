@@ -157,7 +157,7 @@ module_abie = Extension(
 
 setup(
     name="abie",
-    version="0.7.5",
+    version="0.8.0",
     description="Alice-Bob Integrator Environment (ABIE), a GPU-accelerated integrator framework for astrophysical N-body simulations",
     url="https://github.com/MovingPlanetsAround/ABIE",
     author="Maxwell X. Cai, Javier Roa, Adrian S. Hamers, Nathan W. C. Leigh",
@@ -165,7 +165,7 @@ setup(
     license="GPL-3.0",
     packages=find_packages(),
     zip_safe=False,
-    install_requires=["toml", "numpy", "h5py"],
+    install_requires=["toml", "numpy", "h5py", "six"],
     entry_points={"console_scripts": ["abie = ABIE.abie:main"]},
     cmdclass={
         "build_ext": cuda_build_ext,
