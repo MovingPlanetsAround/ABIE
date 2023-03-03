@@ -25,6 +25,7 @@ In the scenarios where the number of particles is large, ABIE makes use of the G
 
     pip install abie
 
+By default, the build script will determine whether the local system has CUDA support and build ABIE accordingly. This can be overriden by specifying the environmental variable `export WITH_CUDA=0` to force ABIE to be built without CUDA support.
 
 ## Getting Started
 
